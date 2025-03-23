@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smash | Cadastro de Alunos</title>
+    <link rel="stylesheet" href="./styles/cadastro.css">
+</head>
+<body>
+    <a href="./index.html"><div id="voltar"><span>←</span> Página Inicial | Ficha de Inscrição</div></a>
+    <div class="container">
+        <h2>ASSOCIAÇÃO CULTURAL DESPORTIVA NIPO-BRASILEIRA VILA FORMOSA</h2> 
+        <h3>FICHA DE INSCRIÇÃO DE ATLETA NÃO PROFISSIONAL</h3>
+        <button class="apresentacao">Apresentação</button>
+        <form method="post">
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Nome do Atleta</label>
+                    <input type="text" id="nome">
+                </div>
+                <div class="form-group">
+                    <label>Nacionalidade</label>
+                    <input type="text" id="nacionalidade">
+                </div>
+                <div class="form-group">
+                    <label>Naturalidade</label>
+                    <input type="text" id="naturalidade">
+                </div>
+                <div class="form-group">
+                    <label>Data de Nascimento</label>
+                    <input type="date" id="dataNascimento">
+                </div>
+                <div class="form-group">
+                    <label>Residência</label>
+                    <input type="text" id="residencia">
+                </div>
+                <div class="form-group">
+                    <label>Número</label>
+                    <input type="text" id="numero">
+                </div>
+                <div class="form-group">
+                    <label>Bairro</label>
+                    <input type="text" id="bairro">
+                </div>
+                <div class="form-group">
+                    <label>Cidade</label>
+                    <input type="text" id="cidade">
+                </div>
+                <div class="form-group">
+                    <label>CEP</label>
+                    <input type="text" id="cep">
+                </div>
+                <div class="form-group">
+                    <label>Telefone</label>
+                    <input type="text" id="telefone">
+                </div>
+                <div class="form-group">
+                    <label>Celular</label>
+                    <input type="text" id="celular">
+                </div>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="text" id="email">
+                </div>
+                <div class="form-group">
+                    <label>Profissão</label>
+                    <input type="text" id="profissao">
+                </div>
+                <div class="form-group">
+                    <label>RG</label>
+                    <input type="text" id="rg">
+                </div>
+                <div class="form-group">
+                    <label>CPF</label>
+                    <input type="text" id="cpf">
+                </div>
+            </div>
+            <h3>STATUS DE PRESENÇA</h3>
+            <div class="checkbox-group">
+                <input type="radio" name="presenca" value="true" id="presencaTrue"> <label for="presencaTrue">Ativo</label> 
+                <input type="radio" name="presenca" value="false" id="presencaFalse"> <label for="presencaFalse">Inativo</label> 
+            </div>
+            <h3>ATESTADOS</h3>
+            <div class="checkbox-group">
+                <label>Atestados de capacitação para prática de esportes. Entregue?</label>
+                <input type="radio" name="atestado"  value="true" id="atestadoTrue"> <label for="atestadoTrue">Sim</label> 
+                <input type="radio" name="atestado"  value="false" id="atestadoFalse"> <label for="atestadoFalse">Não</label> 
+            </div>
+            <div class="checkbox-group">
+                <label>Assinatura do Atleta?</label>
+                <input type="radio" name="assinatura" value="true" id="assinaturaTrue"> <label for="assinaturaTrue">Sim</label>
+                <input type="radio" name="assinatura" value="false" id="assinaturaFalse"> <label for="assinaturaFalse">Não</label>
+            </div>
+            <h3>AUTORIZAÇÃO</h3>
+            <div class="checkbox-group">
+                <label>Autoriza seu filho menor a se inscrever e participar de competições?</label>
+                <input type="radio" name="autorizacao" value="true" id="autorizacaoTrue"> <label for="autorizacaoTrue">Sim</label> 
+                <input type="radio" name="autorizacao" value="false" id="autorizacaoFalse"> <label for="autorizacaoFalse">Não</label> 
+            </div>
+            <div class="button-group">
+                <button class="cancel">Cancelar</button>
+                <button class="save">Salvar</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+<script src="./js/cadastrar.js"></script>
+</html>
