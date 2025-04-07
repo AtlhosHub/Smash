@@ -2,6 +2,7 @@ package com.athlos.smashback.controller;
 
 import com.athlos.smashback.model.ListaEspera;
 import com.athlos.smashback.service.ListaEsperaService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,7 @@ public class ListaEsperaController {
     }
 
     @PostMapping
-    public ResponseEntity<ListaEspera> adicionarInteressado(@RequestBody ListaEspera listaEspera) {
+    public ResponseEntity<ListaEspera> adicionarInteressado(@Valid @RequestBody ListaEspera listaEspera) {
         return listaEsperaService.adicionarInteressado(listaEspera);
     }
 
@@ -36,7 +37,7 @@ public class ListaEsperaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ListaEspera> atualizarInteressado(@PathVariable int id, @RequestBody ListaEspera novoInteressado) {
+    public ResponseEntity<ListaEspera> atualizarInteressado(@PathVariable int id, @Valid @RequestBody ListaEspera novoInteressado) {
         return listaEsperaService.atualizarInteressado(id, novoInteressado);
     }
 }

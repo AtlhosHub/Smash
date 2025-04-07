@@ -2,6 +2,7 @@ package com.athlos.smashback.controller;
 
 import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,7 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity<Usuario> adicionarUsuario(@RequestBody Usuario usuario){
+    public ResponseEntity<Usuario> adicionarUsuario(@Valid @RequestBody Usuario usuario){
         return usuarioService.adicionarUsuario(usuario);
     }
 
@@ -36,7 +37,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> atualizarUsuario(@PathVariable int id, @RequestBody Usuario novoUsuario){
+    public ResponseEntity<Usuario> atualizarUsuario(@PathVariable int id, @Valid @RequestBody Usuario novoUsuario){
         return usuarioService.atualizarUsuario(id, novoUsuario);
     }
 }
