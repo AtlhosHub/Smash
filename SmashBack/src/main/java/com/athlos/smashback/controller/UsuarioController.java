@@ -1,5 +1,7 @@
 package com.athlos.smashback.controller;
 
+import com.athlos.smashback.dto.UsuarioInfoDTO;
+import com.athlos.smashback.dto.UsuarioListaDTO;
 import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -17,12 +19,12 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Usuario>> listarUsuarios(){
+    public ResponseEntity<List<UsuarioListaDTO>> listarUsuarios(){
         return usuarioService.listarUsuarios();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> buscarUsuarioPorId(@PathVariable int id){
+    public ResponseEntity<UsuarioInfoDTO> buscarUsuarioPorId(@PathVariable int id){
         return usuarioService.buscarUsuarioPorId(id);
     }
 

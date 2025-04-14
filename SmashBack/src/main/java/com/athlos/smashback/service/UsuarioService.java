@@ -1,5 +1,7 @@
 package com.athlos.smashback.service;
 
+import com.athlos.smashback.dto.UsuarioInfoDTO;
+import com.athlos.smashback.dto.UsuarioListaDTO;
 import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.repository.UsuarioRepository;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +16,21 @@ public class UsuarioService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public ResponseEntity<List<Usuario>> listarUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findAllByDeletado(false);
-        return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuarios);
+    public ResponseEntity<List<UsuarioListaDTO>> listarUsuarios() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
+
+        return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
     }
 
-    public ResponseEntity<Usuario> buscarUsuarioPorId(int id) {
-        return usuarioRepository.existsById(id) ? ResponseEntity.ok(usuarioRepository.findById(id).get()) : ResponseEntity.notFound().build();
+    public ResponseEntity<UsuarioInfoDTO> buscarUsuarioPorId(int id) {
+        if (!usuarioRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        Usuario usuario = usuarioRepository.findById(id).get();
+        UsuarioInfoDTO dadosUsuario = new UsuarioInfoDTO(usuario.getNome(), usuario.getEmail(), usuario.getCelular(), usuario.getDataNascimento(), usuario.getCargo());
+
+        return ResponseEntity.ok(dadosUsuario);
     }
 
     public ResponseEntity<Usuario> adicionarUsuario(Usuario usuario) {

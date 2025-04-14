@@ -69,7 +69,6 @@ public class Aluno {
     @JsonIgnoreProperties({"alunos"})
     private List<Responsavel> responsaveis;
 
-    @Valid
     @ManyToOne
     @JoinColumn(name = "usuario_inclusao_id")
     @JsonIgnoreProperties({"usuarioInclusao", "alunos", "usuariosCadastrados", "interessados"})

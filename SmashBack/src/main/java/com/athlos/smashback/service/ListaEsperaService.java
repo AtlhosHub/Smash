@@ -1,5 +1,6 @@
 package com.athlos.smashback.service;
 
+import com.athlos.smashback.dto.ListaEsperaDTO;
 import com.athlos.smashback.model.ListaEspera;
 import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.repository.ListaEsperaRepository;
@@ -15,9 +16,11 @@ public class ListaEsperaService {
         this.listaEsperaRepository = listaEsperaRepository;
     }
 
-    public ResponseEntity<List<ListaEspera>> listaEspera() {
+    public ResponseEntity<List<ListaEsperaDTO>> listaEspera() {
         List<ListaEspera> listaEspera = listaEsperaRepository.findAll();
-        return listaEspera.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(listaEspera);
+
+        List<ListaEsperaDTO> interessados = listaEspera.stream().map(interessado -> new ListaEsperaDTO(interessado.getId(), interessado.getNome(), interessado.getDataInteresse(), interessado.getHorarioPreferencia())).toList();
+        return listaEspera.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(interessados);
     }
 
     public ResponseEntity<ListaEspera> buscarInteressado(int id) {
