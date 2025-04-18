@@ -27,8 +27,14 @@ public class Responsavel {
     @NotBlank(message = "O celular do responsável não pode ficar em branco")
     private String celular;
 
+    @NotBlank(message = "O e-mail não pode ficar em branco")
+    @Email(message = "O e-mail deve ser válido (Possuir @)")
+    private String email;
+
     private String rg;
     private String telefone;
+    private String nomeSocial;
+    private String genero;
 
     @ManyToMany(mappedBy = "responsaveis")
     @JsonIgnoreProperties("responsaveis")

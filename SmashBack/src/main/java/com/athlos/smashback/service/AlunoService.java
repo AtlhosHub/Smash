@@ -1,6 +1,7 @@
 package com.athlos.smashback.service;
 
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
+import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.model.Endereco;
 import com.athlos.smashback.model.Responsavel;
@@ -38,8 +39,8 @@ public class AlunoService {
         return alunoRepository.existsById(id) ? ResponseEntity.ok(alunoRepository.findById(id).get()) : ResponseEntity.notFound().build();
     }
 
-    public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes() {
-        return ResponseEntity.ok(alunoComprovanteService.buscarAlunosComComprovantes());
+    public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(AlunoFilter filtro) {
+        return ResponseEntity.ok(alunoComprovanteService.listarAlunosComComprovantes(filtro));
     }
 
     public ResponseEntity<Aluno> cadastrarAluno(Aluno aluno) {
@@ -95,8 +96,10 @@ public class AlunoService {
             aluno.setCpf(novoAluno.getCpf());
             aluno.setAtivo(novoAluno.isAtivo());
             aluno.setTemAtestado(novoAluno.isTemAtestado());
-            aluno.setTemAssinatura(novoAluno.isTemAssinatura());
             aluno.setAutorizado(novoAluno.isAutorizado());
+            aluno.setNomeSocial(novoAluno.getNomeSocial());
+            aluno.setGenero(novoAluno.getGenero());
+            aluno.setDeficiencia(novoAluno.getDeficiencia());
 
             Optional<Endereco> enderecoExistente = enderecoRepository.findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCep(
                     novoAluno.getEndereco().getLogradouro(),

@@ -36,6 +36,9 @@ public class Usuario {
     @Past(message = "A data deve ser uma data passada")
     private LocalDate dataNascimento;
 
+    private String nomeSocial;
+    private String genero;
+    private String telefone;
     private String cargo;
     private boolean deletado = false;
 

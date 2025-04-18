@@ -58,6 +58,7 @@ public class UsuarioService {
             usuario.setSenha(novoUsuario.getSenha());
             usuario.setCargo(novoUsuario.getCargo());
             usuario.setDeletado(novoUsuario.isDeletado());
+            usuario.setNomeSocial(novoUsuario.getNomeSocial());
             return ResponseEntity.ok(usuarioRepository.save(usuario));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }

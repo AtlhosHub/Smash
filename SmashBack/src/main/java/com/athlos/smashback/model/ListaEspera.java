@@ -30,7 +30,11 @@ public class ListaEspera {
     @NotBlank(message = "O celular não pode ficar em branco")
     private String celular;
 
-    private Time horarioPreferencia;
+    private String nomeSocial;
+    private String genero;
+    private LocalDate dataNascimento;
+    private String telefone;
+
 
     @CreationTimestamp
     private LocalDateTime dataInclusao;
@@ -39,4 +43,8 @@ public class ListaEspera {
     @JoinColumn(name = "usuario_inclusao_id")
     @JsonIgnoreProperties({"usuarioInclusao", "usuariosCadastrados", "alunos", "interessados"})
     private Usuario usuarioInclusao;
+
+    @ManyToOne
+    @JoinColumn(name = "horario_pref_id")
+    private HorarioPref horarioPref;
 }

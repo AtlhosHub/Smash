@@ -1,6 +1,7 @@
 package com.athlos.smashback.controller;
 
 import com.athlos.smashback.dto.ListaEsperaDTO;
+import com.athlos.smashback.filter.ListaEsperaFilter;
 import com.athlos.smashback.model.ListaEspera;
 import com.athlos.smashback.service.ListaEsperaService;
 import jakarta.validation.Valid;
@@ -20,6 +21,11 @@ public class ListaEsperaController {
     @GetMapping
     public ResponseEntity<List<ListaEsperaDTO>> listaEspera() {
         return listaEsperaService.listaEspera();
+    }
+
+    @PostMapping("/filtro")
+    public ResponseEntity<List<ListaEsperaDTO>> listaEsperaFiltro(@RequestBody ListaEsperaFilter filtro) {
+        return listaEsperaService.listaEsperaFiltro(filtro);
     }
 
     @GetMapping("/{id}")

@@ -1,6 +1,7 @@
 package com.athlos.smashback.controller;
 
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
+import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.service.AlunoService;
 import jakarta.validation.Valid;
@@ -27,9 +28,9 @@ public class AlunoController {
         return alunoService.buscarAluno(id);
     }
 
-    @GetMapping("/comprovantes")
-    public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes() {
-        return alunoService.listarAlunosComComprovantes();
+    @PostMapping("/comprovantes")
+    public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(@RequestBody AlunoFilter filtro) {
+        return alunoService.listarAlunosComComprovantes(filtro);
     }
 
     @PostMapping

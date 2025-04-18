@@ -38,15 +38,19 @@ public class Aluno {
     @Cpf
     private String cpf;
 
+    @NotBlank(message = "O RG não pode ficar em branco")
+    private String rg;
+
+    private String nomeSocial;
+    private String genero;
     private String celular;
     private String nacionalidade;
     private String naturalidade;
     private String telefone;
     private String profissao;
-    private String rg;
     private boolean ativo;
     private boolean temAtestado;
-    private boolean temAssinatura;
+    private String deficiencia;
     private boolean autorizado;
 
     @CreationTimestamp
