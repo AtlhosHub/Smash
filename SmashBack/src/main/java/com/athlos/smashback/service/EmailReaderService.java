@@ -1,5 +1,6 @@
 package com.athlos.smashback.service;
 
+import com.athlos.smashback.adapters.JavaTimeAdapters;
 import com.athlos.smashback.model.Comprovante;
 import com.google.gson.*;
 import jakarta.mail.*;
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Service;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
@@ -106,7 +110,6 @@ public class EmailReaderService {
             String apiKey = "AIzaSyCS_Nyk5_7eZE7dceMiZDngNJufOqWtKgI";
             String mimeType = "image/png";
 
-            // Se PDF, converter para imagem primeiro
             if (file.getName().toLowerCase().endsWith(".pdf")) {
                 file = converterPdfParaImagem(file);
             }
@@ -137,7 +140,7 @@ public class EmailReaderService {
 
                         Lembre-se:
                         - Os campos podem estar com nomes diferentes (ex: \\"De\\", \\"Para\\", \\"Data da operação\\").
-                        - Traga todas as datas no formato de LocalDateTime do java. 
+                        - Traga todas as datas no formato de ISO_LOCAL_DATE_TIME do java. 
                           Caso esteja diferente de uma data convencional (ex: \\"11/09/2001\\"), 
                           por exemplo no formato\\"11 de Setembro de 2001\\", faça a conversão
                         - Não inclua texto explicativo, apenas o JSON puro.
@@ -207,7 +210,12 @@ public class EmailReaderService {
             }
             System.out.println("JSON processado: " + jsonLimpo);
 
-            return new Gson().fromJson(jsonLimpo, Comprovante.class);
+            Gson gson = JavaTimeAdapters
+                    .registerAll(new GsonBuilder())
+                    .create();
+
+            return gson.fromJson(jsonLimpo, Comprovante.class);
+
 
         } catch (Exception e) {
             System.err.println("❌ Erro crítico ao processar resposta do Gemini:");
