@@ -4,14 +4,19 @@ import com.athlos.smashback.dto.AlunoComprovanteDTO;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.model.Endereco;
+import com.athlos.smashback.model.Mensalidade;
 import com.athlos.smashback.model.Responsavel;
+import com.athlos.smashback.model.enums.Status;
 import com.athlos.smashback.repository.AlunoRepository;
 import com.athlos.smashback.repository.EnderecoRepository;
+import com.athlos.smashback.repository.MensalidadeRepository;
 import com.athlos.smashback.repository.ResponsavelRepository;
 import com.athlos.smashback.service.AlunoComprovanteService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,12 +27,15 @@ public class AlunoService {
     private final EnderecoRepository enderecoRepository;
     private final ResponsavelRepository responsavelRepository;
     private final AlunoComprovanteService alunoComprovanteService;
+    private final MensalidadeRepository mensalidadeRepository;
+    private static final int NUMERO_PARCELAS = 6;
 
-    public AlunoService(AlunoRepository alunoRepository, EnderecoRepository enderecoRepository, ResponsavelRepository responsavelRepository, AlunoComprovanteService alunoComprovanteService) {
+    public AlunoService(AlunoRepository alunoRepository, EnderecoRepository enderecoRepository, ResponsavelRepository responsavelRepository, AlunoComprovanteService alunoComprovanteService, MensalidadeRepository mensalidadeRepository) {
         this.alunoRepository = alunoRepository;
         this.enderecoRepository = enderecoRepository;
         this.responsavelRepository = responsavelRepository;
         this.alunoComprovanteService = alunoComprovanteService;
+        this.mensalidadeRepository = mensalidadeRepository;
     }
 
     public ResponseEntity<List<Aluno>> listarAlunos() {
@@ -43,6 +51,7 @@ public class AlunoService {
         return ResponseEntity.ok(alunoComprovanteService.listarAlunosComComprovantes(filtro));
     }
 
+    @Transactional
     public ResponseEntity<Aluno> cadastrarAluno(Aluno aluno) {
         if (alunoRepository.existsByEmailOrCpfOrRg(aluno.getEmail(), aluno.getCpf(), aluno.getRg())) {
             return ResponseEntity.status(409).body(aluno);
@@ -64,7 +73,8 @@ public class AlunoService {
                     .collect(Collectors.toList());
             aluno.setResponsaveis(responsaveis);
         }
-
+        Aluno alunoSalvo = alunoRepository.save(aluno);
+        gerarMensalidades(alunoSalvo);
         return ResponseEntity.ok(alunoRepository.save(aluno));
     }
 
@@ -120,5 +130,25 @@ public class AlunoService {
 
             return ResponseEntity.ok(alunoRepository.save(aluno));
         }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    public void gerarMensalidades(Aluno aluno) {
+        LocalDate dataBase = aluno.getDataInclusao().toLocalDate().withDayOfMonth(5);
+        LocalDate hoje = LocalDate.now();
+        final double VALOR_PADRAO = 412.54; //por enquanto estou definindo o valor aqui
+
+        for (int i = 0; i < NUMERO_PARCELAS; i++) {
+            Mensalidade mensalidade = new Mensalidade();
+            mensalidade.setAluno(aluno);
+            LocalDate dataVencimento = dataBase.plusMonths(i);
+            mensalidade.setDataVencimento(dataVencimento);
+            mensalidade.setValor(VALOR_PADRAO);
+
+            mensalidade.setStatus(dataVencimento.isBefore(hoje)
+                    ? Status.ATRASADO
+                    : Status.PENDENTE);
+
+            mensalidadeRepository.save(mensalidade);
+        }
     }
 }

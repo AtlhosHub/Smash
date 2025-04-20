@@ -1,11 +1,18 @@
 package com.athlos.smashback.service;
 
 import com.athlos.smashback.adapters.JavaTimeAdapters;
+import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.model.Comprovante;
+import com.athlos.smashback.model.Mensalidade;
+import com.athlos.smashback.repository.AlunoRepository;
+import com.athlos.smashback.repository.ComprovanteRepository;
+import com.athlos.smashback.repository.MensalidadeRepository;
 import com.google.gson.*;
 import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.*;
+import jakarta.transaction.Transactional;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +23,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import com.athlos.smashback.model.enums.Status;
 
 @Service
 public class EmailReaderService {
@@ -29,7 +37,17 @@ public class EmailReaderService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Autowired
+    private AlunoRepository alunoRepository;
+
+    @Autowired
+    private MensalidadeRepository mensalidadeRepository;
+
+    @Autowired
+    private ComprovanteRepository comprovanteRepository;
+
     @Scheduled(fixedDelay = 60000)
+    @Transactional
     public void verificarEmails() {
         System.out.println("\uD83D\uDD04 Verificando emails às " + java.time.LocalDateTime.now());
         try {
@@ -50,6 +68,20 @@ public class EmailReaderService {
                 if (from == null || from.length == 0) continue;
                 String remetente = from[0].toString();
 
+                String remetenteEmail = InternetAddress.toString(from)
+                        .replaceAll(".*<([^>]+)>.*", "$1")
+                        .trim();
+
+                Optional<Aluno> alunoOpt = alunoRepository.findByAlunoOrResponsavelEmail(remetenteEmail);
+
+                if (alunoOpt.isEmpty()) {
+                    System.out.println("⚠️ Email não vinculado a nenhum aluno: " + remetenteEmail);
+                    continue;
+                }
+
+                Aluno aluno = alunoOpt.get();
+                String nomeAluno = aluno.getNome();
+
                 if (message.getContentType().contains("multipart")) {
                     Multipart multipart = (Multipart) message.getContent();
 
@@ -65,7 +97,8 @@ public class EmailReaderService {
                             Comprovante pagamento = extrairPagamentoDoGemini(jsonGemini);
                             if (pagamento != null && pagamento.getValor() != null) {
                                 System.out.println("✅ Pagamento identificado: " + pagamento);
-                                enviarEmailDeConfirmacao(remetente);
+                                processarPagamento(aluno, pagamento);
+                                enviarEmailDeConfirmacao(nomeAluno, remetenteEmail);
                             }
 
                             if (tempFile.exists()) tempFile.delete();
@@ -130,21 +163,23 @@ public class EmailReaderService {
                     """
                         Você receberá a imagem de um comprovante de pagamento.
                         Extraia e retorne somente um JSON puro, sem explicações, marcações ou formatação adicional.
-
+                    
                         O JSON deve conter os seguintes campos:
                         - nomeRemetente: nome de quem enviou o pagamento.
-                        - valor: valor da transação, como número (ex: \\"120.00\\").
-                        - dataEnvio: data e horário do pagamento.
+                        - valor: valor da transação, como número (ex: "120.00").
+                        - dataEnvio: data e horário do pagamento **no formato brasileiro (dd/MM/yyyy)**. 
+                          Converta para o formato ISO_LOCAL_DATE_TIME (yyyy-MM-dd'T'HH:mm:ss).
                         - bancoOrigem: banco de onde saiu o dinheiro.
                         Se algum campo não estiver claramente presente, use null.
-
-                        Lembre-se:
-                        - Os campos podem estar com nomes diferentes (ex: \\"De\\", \\"Para\\", \\"Data da operação\\").
-                        - Traga todas as datas no formato de ISO_LOCAL_DATE_TIME do java. 
-                          Caso esteja diferente de uma data convencional (ex: \\"11/09/2001\\"), 
-                          por exemplo no formato\\"11 de Setembro de 2001\\", faça a conversão
+                    
+                        Exemplo de Conversão de Data:
+                        - Data no comprovante: "01/04/2025 - 07:13:18" → "2025-04-01T07:13:18"
+                    
+                        Observações:
+                        - Campos podem ter nomes variantes (ex: "Data da operação", "Data/Hora").
                         - Não inclua texto explicativo, apenas o JSON puro.
-                    """);
+                    """
+            );
 
             JsonArray parts = new JsonArray();
             parts.add(imagePart);
@@ -225,20 +260,80 @@ public class EmailReaderService {
         }
     }
 
-    private void enviarEmailDeConfirmacao(String nome) {
+    private void enviarEmailDeConfirmacao(String nomeAluno, String emailDestino) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, false, "utf-8");
 
-            helper.setTo(nome);
+            helper.setTo(emailDestino);
             helper.setSubject("Confirmação de Pagamento");
-            helper.setText("Olá! O pagamento em nome de " + nome + " foi recebido com sucesso. Obrigado!", true);
+            helper.setText("Olá! O pagamento em nome de " + nomeAluno + " foi recebido com sucesso. Obrigado!", true);
             helper.setFrom(EMAIL);
 
             mailSender.send(message);
-            System.out.println("\uD83D\uDCE8 Email de confirmação enviado para: " + nome);
+            System.out.println("✉️ Email de confirmação enviado para: " + emailDestino + " (Aluno: " + nomeAluno + ")");
         } catch (Exception e) {
             System.err.println("❌ Erro ao enviar email de confirmação:");
+            e.printStackTrace();
+        }
+    }
+
+    private void processarPagamento(Aluno aluno, Comprovante comprovante) {
+        try {
+            comprovante.setAluno(aluno);
+            Comprovante comprovanteSalvo = comprovanteRepository.save(comprovante);
+
+            List<Mensalidade> mensalidades = mensalidadeRepository.findByAlunoAndStatusInOrderByDataVencimentoAsc(
+                    aluno, List.of(Status.PENDENTE, Status.ATRASADO)
+            );
+
+            double valorDisponivel = comprovanteSalvo.getValor();
+            LocalDate dataPagamento = comprovanteSalvo.getDataEnvio().toLocalDate();
+
+            List<Mensalidade> mensalidadesComDesconto = new ArrayList<>();
+            for (Mensalidade mensalidade : mensalidades) {
+                LocalDate dataVencimento = mensalidade.getDataVencimento();
+                long diasAntecedencia = ChronoUnit.DAYS.between(dataPagamento, dataVencimento);
+
+                if (diasAntecedencia >= 12 && dataPagamento.isBefore(dataVencimento)) {
+                    mensalidadesComDesconto.add(mensalidade);
+                }
+            }
+
+                for (Mensalidade mensalidade : mensalidades) {
+                if (valorDisponivel <= 0) break;
+
+                double valorOriginal = mensalidade.getValor();
+                boolean aplicaDesconto = mensalidadesComDesconto.contains(mensalidade);
+                double valorFinal = aplicaDesconto ? valorOriginal - 10.0 : valorOriginal;
+
+                if (valorDisponivel >= valorFinal) {
+                    if (aplicaDesconto) {
+                        System.out.println("🎉 Desconto aplicado para " +
+                                mensalidade.getDataVencimento().getMonthValue() + "/"
+                                + mensalidade.getDataVencimento().getYear());
+                    }
+
+                    mensalidade.setStatus(Status.PAGO);
+                    mensalidade.setDataPagamento(comprovanteSalvo.getDataEnvio());
+                    mensalidade.setComprovante(comprovanteSalvo);
+                    mensalidade.setValor(valorFinal);
+
+                    valorDisponivel -= valorFinal;
+                    mensalidadeRepository.save(mensalidade);
+
+                    System.out.println("✅ Mensalidade " + mensalidade.getDataVencimento().getMonthValue() + "/"
+                            + mensalidade.getDataVencimento().getYear() + " paga: R$ " + valorFinal);
+                }
+            }
+
+            if (valorDisponivel > 0) {
+                System.out.println("⚠️ Valor excedente: R$ " + valorDisponivel);
+            } //isso aqui meio que fodasse coloquei só pra saber pq se a pessoa
+            // pagou a mensalidade e sobrou a culpa é dela
+
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao processar pagamento:");
             e.printStackTrace();
         }
     }
