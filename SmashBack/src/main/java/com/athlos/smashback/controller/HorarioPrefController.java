@@ -2,6 +2,7 @@ package com.athlos.smashback.controller;
 
 import com.athlos.smashback.model.HorarioPref;
 import com.athlos.smashback.service.HorarioPrefService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,21 +17,25 @@ public class HorarioPrefController {
     }
 
     @GetMapping
+    @SecurityRequirement(name = "Bearer")
     public ResponseEntity<List<HorarioPref>> listarHorarios() {
         return horarioPrefService.listarHorarios();
     }
 
     @PostMapping
+    @SecurityRequirement(name = "Bearer")
     public ResponseEntity<HorarioPref> cadastrarHorario(@RequestBody HorarioPref horarioPref) {
         return horarioPrefService.cadastrarHorario(horarioPref);
     }
 
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "Bearer")
     public ResponseEntity<Void> deletarHorario(@PathVariable int id) {
         return horarioPrefService.deletarHorario(id);
     }
 
     @PutMapping("/{id}")
+    @SecurityRequirement(name = "Bearer")
     public ResponseEntity<HorarioPref> atualizarHorario(@PathVariable int id, @RequestBody HorarioPref novoHorario) {
         return horarioPrefService.atualizarHorario(id, novoHorario);
     }

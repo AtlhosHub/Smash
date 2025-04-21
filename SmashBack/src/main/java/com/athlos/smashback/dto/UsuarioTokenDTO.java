@@ -5,16 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor
-public class UsuarioInfoDTO {
+public class UsuarioTokenDTO {
+    private int id;
     private String nome;
     private String email;
-    private String celular;
-    private LocalDate dataNascimento;
-    private String nomeSocial;
-    private String genero;
-    private String telefone;
-    private String cargo;
+    private String token;
 }
