@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Smash.iml" filepath="$PROJECT_DIR$/.idea/Smash.iml" />
-      <module fileurl="file://$PROJECT_DIR$/SmashBack/SmashBack.iml" filepath="$PROJECT_DIR$/SmashBack/SmashBack.iml" />
     </modules>
   </component>
 </project>

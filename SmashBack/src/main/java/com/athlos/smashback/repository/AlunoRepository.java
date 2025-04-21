@@ -7,9 +7,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AlunoRepository extends JpaRepository<Aluno, Integer>, JpaSpecificationExecutor<Aluno> {
@@ -25,5 +27,10 @@ public interface AlunoRepository extends JpaRepository<Aluno, Integer>, JpaSpeci
     boolean existsByRgAndIdIsNot(String rg, int id);
 
     List<Aluno> findAll(@Nullable Specification<Aluno> spec);
+
+    @Query("SELECT a FROM Aluno a " +
+            "WHERE a.email = :email " +
+            "OR EXISTS (SELECT r FROM a.responsaveis r WHERE r.email = :email)")
+    Optional<Aluno> findByAlunoOrResponsavelEmail(String email);
 
 }

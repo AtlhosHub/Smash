@@ -1,19 +1,47 @@
 package com.athlos.smashback.service;
 
+import com.athlos.smashback.config.GerenciadorTokenJWT;
 import com.athlos.smashback.dto.UsuarioInfoDTO;
 import com.athlos.smashback.dto.UsuarioListaDTO;
+import com.athlos.smashback.dto.UsuarioMapper;
+import com.athlos.smashback.dto.UsuarioTokenDTO;
 import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 @Service
 public class UsuarioService {
-    private final UsuarioRepository usuarioRepository;
-    public UsuarioService(UsuarioRepository usuarioRepository) {
-        this.usuarioRepository = usuarioRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private GerenciadorTokenJWT gerenciadorTokenJWT;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    public UsuarioTokenDTO autenticar(Usuario usuario) {
+        Usuario usuarioAutenticado = usuarioRepository.findByEmail(usuario.getEmail()).orElseThrow(() -> new ResponseStatusException(404, "Email do usuário não cadastrado", null));
+        final UsernamePasswordAuthenticationToken credentials = new UsernamePasswordAuthenticationToken(usuario.getEmail(), usuario.getSenha());
+        final Authentication authentication = authenticationManager.authenticate(credentials);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        final String token = gerenciadorTokenJWT.generateToken(authentication);
+
+        return UsuarioMapper.of(usuarioAutenticado, token);
     }
 
     public ResponseEntity<List<UsuarioListaDTO>> listarUsuarios() {
@@ -28,12 +56,14 @@ public class UsuarioService {
             return ResponseEntity.notFound().build();
         }
         Usuario usuario = usuarioRepository.findById(id).get();
-        UsuarioInfoDTO dadosUsuario = new UsuarioInfoDTO(usuario.getNome(), usuario.getEmail(), usuario.getCelular(), usuario.getDataNascimento(), usuario.getCargo());
+        UsuarioInfoDTO dadosUsuario = new UsuarioInfoDTO(usuario.getNome(), usuario.getEmail(), usuario.getCelular(), usuario.getDataNascimento(), usuario.getNomeSocial(), usuario.getGenero(), usuario.getTelefone(), usuario.getCargo());
 
         return ResponseEntity.ok(dadosUsuario);
     }
 
     public ResponseEntity<Usuario> adicionarUsuario(Usuario usuario) {
+        String senhaCriptografada = passwordEncoder.encode(usuario.getSenha());
+        usuario.setSenha(senhaCriptografada);
         return usuarioRepository.existsByEmail(usuario.getEmail()) ? ResponseEntity.status(409).body(usuario) : ResponseEntity.ok(usuarioRepository.save(usuario));
     }
 
