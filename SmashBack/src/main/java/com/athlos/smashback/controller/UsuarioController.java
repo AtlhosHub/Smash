@@ -42,4 +42,9 @@ public class UsuarioController {
     public ResponseEntity<Usuario> atualizarUsuario(@PathVariable int id, @Valid @RequestBody Usuario novoUsuario){
         return usuarioService.atualizarUsuario(id, novoUsuario);
     }
+
+    @GetMapping("/vazio")
+    public ResponseEntity<Void> retornarVazio() {
+        return ResponseEntity.noContent().build();
+    }
 }
