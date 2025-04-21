@@ -75,7 +75,7 @@ public class AlunoService {
         }
         Aluno alunoSalvo = alunoRepository.save(aluno);
         gerarMensalidades(alunoSalvo);
-        return ResponseEntity.ok(alunoRepository.save(aluno));
+        return ResponseEntity.ok(alunoSalvo);
     }
 
     public ResponseEntity<Void> deletarAluno(int id) {
