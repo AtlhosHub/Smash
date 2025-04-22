@@ -16,19 +16,20 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
-@SecurityRequirement(name = "Bearer")
 @Tag(name = "UsuarioController", description = "Endpoints para gerenciar usuários no sistema")
 public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
     @GetMapping
+    @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Listar usuários", description = "Retorna uma lista de todos os usuários cadastrados no sistema.")
     public ResponseEntity<List<UsuarioListaDTO>> listarUsuarios() {
         return usuarioService.listarUsuarios();
     }
 
     @GetMapping("/{id}")
+    @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Buscar usuário por ID", description = "Retorna os detalhes de um usuário específico com base no ID fornecido.")
     public ResponseEntity<UsuarioInfoDTO> buscarUsuarioPorId(
             @Parameter(description = "ID do usuário a ser buscado", example = "1") @PathVariable int id) {
@@ -36,6 +37,7 @@ public class UsuarioController {
     }
 
     @PostMapping
+    @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Adicionar um novo usuário", description = "Adiciona um novo usuário ao sistema.")
     public ResponseEntity<Usuario> adicionarUsuario(
             @Valid @RequestBody @Parameter(description = "Dados do usuário a ser adicionado") Usuario usuario) {
@@ -43,6 +45,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Remover usuário por ID", description = "Remove um usuário do sistema com base no ID fornecido.")
     public ResponseEntity<Void> removerUsuario(
             @Parameter(description = "ID do usuário a ser removido", example = "1") @PathVariable int id) {
@@ -50,6 +53,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
+    @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Atualizar usuário por ID", description = "Atualiza os dados de um usuário existente com base no ID fornecido.")
     public ResponseEntity<Usuario> atualizarUsuario(
             @Parameter(description = "ID do usuário a ser atualizado", example = "1") @PathVariable int id,
