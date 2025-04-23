@@ -1,7 +1,6 @@
 package com.athlos.smashback.controller;
 
-import com.athlos.smashback.dto.UsuarioInfoDTO;
-import com.athlos.smashback.dto.UsuarioListaDTO;
+import com.athlos.smashback.dto.*;
 import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,6 +75,7 @@ public class UsuarioController {
         UsuarioTokenDTO usuarioTokenDTO = usuarioService.autenticar(usuario);
         return ResponseEntity.ok(usuarioTokenDTO);
 
+    }
 
     @GetMapping("/vazio")
     public ResponseEntity<Void> retornarVazio() {
