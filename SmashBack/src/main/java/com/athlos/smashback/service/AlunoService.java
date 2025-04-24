@@ -48,8 +48,13 @@ public class AlunoService {
     }
 
     public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(AlunoFilter filtro) {
-        return ResponseEntity.ok(alunoComprovanteService.listarAlunosComComprovantes(filtro));
+        List<AlunoComprovanteDTO> lista = alunoComprovanteService.listarAlunosComComprovantes(filtro);
+        if (lista.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(lista);
     }
+
 
     @Transactional
     public ResponseEntity<Aluno> cadastrarAluno(Aluno aluno) {

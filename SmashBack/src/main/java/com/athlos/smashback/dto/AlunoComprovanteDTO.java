@@ -5,22 +5,25 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter @AllArgsConstructor @NoArgsConstructor
-@Schema(description = "DTO que representa informações do comprovante de um aluno")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Schema(description = "DTO que representa o status de pagamento de mensalidades de um aluno")
 public class AlunoComprovanteDTO {
 
     @Schema(description = "Identificador único do aluno", example = "1")
     private int id;
 
-    @Schema(description = "Nome do aluno", example = "Carlos Oliveira")
+    @Schema(description = "Nome completo do aluno", example = "Carlos Oliveira")
     private String nome;
 
-    @Schema(description = "Indica se o aluno está ativo", example = "true")
-    private Boolean isAtivo;
+    @Schema(description = "Indica se o aluno está ativo no sistema", example = "true")
+    private boolean ativo;
 
-    @Schema(description = "Data de envio do comprovante", example = "2025-04-21T10:15:30")
-    private LocalDateTime dtEnvio;
+    @Schema(description = "Data e hora em que a mensalidade foi paga (data de envio do comprovante)", example = "2025-04-21T10:15:30")
+    private LocalDateTime dataEnvio;
 
-    @Schema(description = "Status do comprovante", example = "Enviado")
+    @Schema(description = "Status atual da mensalidade (PENDENTE, ATRASADO ou PAGO)", example = "PAGO")
     private String status;
 }
