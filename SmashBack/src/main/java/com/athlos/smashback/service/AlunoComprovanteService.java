@@ -3,84 +3,92 @@ package com.athlos.smashback.service;
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
-import com.athlos.smashback.model.Comprovante;
+import com.athlos.smashback.model.Mensalidade;
+import com.athlos.smashback.model.enums.Status;
 import com.athlos.smashback.repository.AlunoRepository;
-import com.athlos.smashback.repository.ComprovanteRepository;
+import com.athlos.smashback.repository.MensalidadeRepository;
 import com.athlos.smashback.specification.AlunoSpecification;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class AlunoComprovanteService {
 
     private final AlunoRepository alunoRepository;
-    private final ComprovanteRepository comprovanteRepository;
-    public AlunoComprovanteService(AlunoRepository alunoRepository, ComprovanteRepository comprovanteRepository) {
+    private final MensalidadeRepository mensalidadeRepository;
+    private static final List<Status> TODOS_STATUS =
+            List.of(Status.PENDENTE, Status.ATRASADO, Status.PAGO);
+
+    public AlunoComprovanteService(AlunoRepository alunoRepository,
+                                   MensalidadeRepository mensalidadeRepository) {
         this.alunoRepository = alunoRepository;
-        this.comprovanteRepository = comprovanteRepository;
+        this.mensalidadeRepository = mensalidadeRepository;
     }
 
+    /**
+     * Lista cada aluno com suas mensalidades, retornando para cada mensalidade:
+     * - id, nome e ativo do aluno
+     * - data de pagamento (dataEnvio da mensalidade)
+     * - status da mensalidade
+     * Aplica filtros de AlunoFilter sobre status e período de data de envio.
+     */
     public List<AlunoComprovanteDTO> listarAlunosComComprovantes(AlunoFilter filtro) {
+        // 1. Filtra alunos
         Specification<Aluno> spec = AlunoSpecification.filtrarPor(filtro);
         List<Aluno> alunos = alunoRepository.findAll(spec);
-
-        YearMonth mesAtual = YearMonth.now();
-        YearMonth mesAnterior = mesAtual.minusMonths(1);
-
-        List<Integer> idsAlunos = alunos.stream().map(Aluno::getId).toList();
-
-        List<Comprovante> comprovantesMesAtual = comprovanteRepository.findByAlunoIdInAndMes(
-                idsAlunos, mesAtual.getYear(), mesAtual.getMonthValue()
-        );
-
-        List<Comprovante> comprovantesMesAnterior = comprovanteRepository.findByAlunoIdInAndMes(
-                idsAlunos, mesAnterior.getYear(), mesAnterior.getMonthValue()
-        );
-
-        Map<Integer, List<Comprovante>> comprovantesAtualMap = comprovantesMesAtual.stream().collect(Collectors.groupingBy(c -> c.getAluno().getId()));
-
-        Map<Integer, List<Comprovante>> comprovantesAnteriorMap = comprovantesMesAnterior.stream().collect(Collectors.groupingBy(c -> c.getAluno().getId()));
+        if (alunos.isEmpty()) return Collections.emptyList();
 
         List<AlunoComprovanteDTO> resultado = new ArrayList<>();
 
+        LocalDateTime from = filtro.getDataEnvioFrom() != null
+                ? filtro.getDataEnvioFrom().atStartOfDay()
+                : null;
+
+        LocalDateTime to = filtro.getDataEnvioTo() != null
+                ? filtro.getDataEnvioTo().atTime(23, 59, 59)
+                : null;
+
+
+        // 2. Para cada aluno, busca suas mensalidades com qualquer status
         for (Aluno aluno : alunos) {
-            List<Comprovante> atual = comprovantesAtualMap.getOrDefault(aluno.getId(), Collections.emptyList());
-            List<Comprovante> anterior = comprovantesAnteriorMap.getOrDefault(aluno.getId(), Collections.emptyList());
+            List<Mensalidade> mensalidades = mensalidadeRepository
+                    .findByAlunoAndStatusInOrderByDataVencimentoAsc(aluno, TODOS_STATUS);
 
-            String status;
-            LocalDateTime dataEnvio = null;
+            LocalDate fromDate = filtro.getDataEnvioFrom();
+            LocalDate toDate   = filtro.getDataEnvioTo();
 
-            if (!atual.isEmpty()) {
-                dataEnvio = comprovantesMesAtual.getFirst().getDataEnvio();
-                status = "ENVIADO";
-            } else if (!anterior.isEmpty()) {
-                status = "PENDENTE";
-            } else {
-                status = "EM ATRASO";
+            for (Mensalidade m : mensalidades) {
+                LocalDateTime dataPagamento = m.getDataPagamento();
+                LocalDate dataVencimento = m.getDataVencimento();
+                String      status         = m.getStatus().name();
+
+
+                // 3. Filtra por status, se informado
+                if (filtro.getStatus() != null && !status.equalsIgnoreCase(filtro.getStatus())) {
+                    continue;
+                }
+
+                if (fromDate != null && dataVencimento.isBefore(fromDate)) {
+                    continue;
+                }
+                if (toDate   != null && dataVencimento.isAfter(toDate)) {
+                    continue;
+                }
+
+                // 6. Adiciona ao resultado, observando ordem id, nome, ativo, dataEnvio, status
+                resultado.add(new AlunoComprovanteDTO(
+                        aluno.getId(),
+                        aluno.getNome(),
+                        aluno.isAtivo(),
+                        dataPagamento,
+                        status
+                ));
             }
-
-            if (filtro.getStatus() != null && !status.equals(filtro.getStatus())) continue;
-            if (filtro.getDataEnvioFrom() != null && (dataEnvio == null || dataEnvio.toLocalDate().isBefore(filtro.getDataEnvioFrom()))) continue;
-            if (filtro.getDataEnvioTo() != null && (dataEnvio == null || dataEnvio.toLocalDate().isAfter(filtro.getDataEnvioTo()))) continue;
-
-            resultado.add(new AlunoComprovanteDTO(
-                    aluno.getId(),
-                    aluno.getNome(),
-                    aluno.isAtivo(),
-                    dataEnvio,
-                    status
-            ));
         }
-
         return resultado;
     }
 }
-

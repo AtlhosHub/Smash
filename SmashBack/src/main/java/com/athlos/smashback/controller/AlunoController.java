@@ -3,6 +3,7 @@ package com.athlos.smashback.controller;
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
+import com.athlos.smashback.service.AlunoComprovanteService;
 import com.athlos.smashback.service.AlunoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,11 +21,12 @@ import java.util.List;
 @Tag(name = "AlunoController", description = "Endpoints para gerenciar os alunos no sistema")
 public class AlunoController {
     private final AlunoService alunoService;
+    private final AlunoComprovanteService alunoComprovanteService;
 
-    public AlunoController(AlunoService alunoService) {
+    public AlunoController(AlunoService alunoService, AlunoComprovanteService alunoComprovanteService) {
         this.alunoService = alunoService;
+        this.alunoComprovanteService = alunoComprovanteService;
     }
-
     @GetMapping
     @Operation(summary = "Listar todos os alunos", description = "Retorna uma lista de todos os alunos cadastrados no sistema.")
     public ResponseEntity<List<Aluno>> listarAlunos() {
@@ -42,7 +44,8 @@ public class AlunoController {
     @Operation(summary = "Listar alunos com comprovantes", description = "Retorna uma lista de alunos que possuem comprovantes com base no filtro fornecido.")
     public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(
             @RequestBody AlunoFilter filtro) {
-        return alunoService.listarAlunosComComprovantes(filtro);
+        List<AlunoComprovanteDTO> lista = alunoComprovanteService.listarAlunosComComprovantes(filtro);
+        return ResponseEntity.ok(lista);
     }
 
     @PostMapping
