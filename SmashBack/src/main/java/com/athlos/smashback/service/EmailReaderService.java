@@ -72,7 +72,7 @@ public class EmailReaderService {
                         .replaceAll(".*<([^>]+)>.*", "$1")
                         .trim();
 
-                Optional<Aluno> alunoOpt = alunoRepository.findByAlunoOrResponsavelEmail(remetenteEmail);
+                Optional<Aluno> alunoOpt = alunoRepository.findByEmailOrResponsavelEmail(remetenteEmail);
 
                 if (alunoOpt.isEmpty()) {
                     System.out.println("⚠️ Email não vinculado a nenhum aluno: " + remetenteEmail);
@@ -80,7 +80,10 @@ public class EmailReaderService {
                 }
 
                 Aluno aluno = alunoOpt.get();
-                String nomeAluno = aluno.getNome();
+                //caso tenha nome social, usar ele
+                String nomeAluno = (aluno.getNomeSocial() != null && !aluno.getNomeSocial().isBlank())
+                        ? aluno.getNomeSocial()
+                        : aluno.getNome();
 
                 if (message.getContentType().contains("multipart")) {
                     Multipart multipart = (Multipart) message.getContent();
@@ -97,9 +100,7 @@ public class EmailReaderService {
                             Comprovante pagamento = extrairPagamentoDoGemini(jsonGemini);
                             if (pagamento != null && pagamento.getValor() != null) {
                                 System.out.println("✅ Pagamento identificado: " + pagamento);
-                                processarPagamento(aluno, pagamento);
-                                enviarEmailDeConfirmacao(nomeAluno, remetenteEmail);
-                            }
+                                processarPagamento(aluno, pagamento, remetenteEmail);                            }
 
                             if (tempFile.exists()) tempFile.delete();
                         }
@@ -139,12 +140,14 @@ public class EmailReaderService {
     }
 
     private String enviarImagemParaGemini(File file) {
+        File converted = null;
         try {
             String apiKey = "AIzaSyCS_Nyk5_7eZE7dceMiZDngNJufOqWtKgI";
             String mimeType = "image/png";
 
             if (file.getName().toLowerCase().endsWith(".pdf")) {
-                file = converterPdfParaImagem(file);
+                converted = converterPdfParaImagem(file);
+                file = converted;
             }
 
             byte[] imageBytes = java.nio.file.Files.readAllBytes(file.toPath());
@@ -161,25 +164,26 @@ public class EmailReaderService {
             textPart.addProperty(
                     "text",
                     """
-                        Você receberá a imagem de um comprovante de pagamento.
-                        Extraia e retorne somente um JSON puro, sem explicações, marcações ou formatação adicional.
-                    
-                        O JSON deve conter os seguintes campos:
-                        - nomeRemetente: nome de quem enviou o pagamento.
-                        - valor: valor da transação, como número (ex: "120.00").
-                        - dataEnvio: data e horário do pagamento **no formato brasileiro (dd/MM/yyyy)**. 
-                          Converta para o formato ISO_LOCAL_DATE_TIME (yyyy-MM-dd'T'HH:mm:ss).
-                        - bancoOrigem: banco de onde saiu o dinheiro.
-                        Se algum campo não estiver claramente presente, use null.
-                    
-                        Exemplo de Conversão de Data:
-                        - Data no comprovante: "01/04/2025 - 07:13:18" → "2025-04-01T07:13:18"
-                    
-                        Observações:
-                        - Campos podem ter nomes variantes (ex: "Data da operação", "Data/Hora").
-                        - Não inclua texto explicativo, apenas o JSON puro.
-                    """
+                                Você receberá a imagem de um comprovante de pagamento.
+                                Extraia e retorne somente um JSON puro, sem explicações, marcações ou formatação adicional.
+                            
+                                O JSON deve conter os seguintes campos:
+                                - nomeRemetente: nome de quem enviou o pagamento.
+                                - valor: valor da transação, como número (ex: "120.00").
+                                - dataEnvio: data e horário do pagamento **no formato brasileiro (dd/MM/yyyy)**. 
+                                  Converta para o formato ISO_LOCAL_DATE_TIME (yyyy-MM-dd'T'HH:mm:ss).
+                                - bancoOrigem: banco de onde saiu o dinheiro.
+                                Se algum campo não estiver claramente presente, use null.
+                            
+                                Exemplo de Conversão de Data:
+                                - Data no comprovante: "01/04/2025 - 07:13:18" → "2025-04-01T07:13:18"
+                            
+                                Observações:
+                                - Campos podem ter nomes variantes (ex: "Data da operação", "Data/Hora").
+                                - Não inclua texto explicativo, apenas o JSON puro.
+                            """
             );
+
 
             JsonArray parts = new JsonArray();
             parts.add(imagePart);
@@ -210,8 +214,15 @@ public class EmailReaderService {
             System.err.println("❌ Erro ao enviar imagem para Gemini:");
             e.printStackTrace();
             return null;
+        } finally {
+            if (converted != null && converted.exists()) {
+                if (!converted.delete()) {
+                    System.err.println("⚠️ Não foi possível apagar o arquivo temporário convertido: " + converted.getName());
+                }
+            }
         }
     }
+
 
     private File converterPdfParaImagem(File pdfFile) throws IOException {
         PDDocument document = PDDocument.load(pdfFile);
@@ -260,81 +271,153 @@ public class EmailReaderService {
         }
     }
 
-    private void enviarEmailDeConfirmacao(String nomeAluno, String emailDestino) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, false, "utf-8");
-
-            helper.setTo(emailDestino);
-            helper.setSubject("Confirmação de Pagamento");
-            helper.setText("Olá! O pagamento em nome de " + nomeAluno + " foi recebido com sucesso. Obrigado!", true);
-            helper.setFrom(EMAIL);
-
-            mailSender.send(message);
-            System.out.println("✉️ Email de confirmação enviado para: " + emailDestino + " (Aluno: " + nomeAluno + ")");
-        } catch (Exception e) {
-            System.err.println("❌ Erro ao enviar email de confirmação:");
-            e.printStackTrace();
-        }
-    }
-
-    private void processarPagamento(Aluno aluno, Comprovante comprovante) {
+    private void processarPagamento(Aluno aluno,
+                                    Comprovante comprovante,
+                                    String emailDestino) {
         try {
             comprovante.setAluno(aluno);
             Comprovante comprovanteSalvo = comprovanteRepository.save(comprovante);
 
-            List<Mensalidade> mensalidades = mensalidadeRepository.findByAlunoAndStatusInOrderByDataVencimentoAsc(
-                    aluno, List.of(Status.PENDENTE, Status.ATRASADO)
-            );
+            List<Mensalidade> mensalidades = mensalidadeRepository
+                    .findByAlunoAndStatusInOrderByDataVencimentoAsc(
+                            aluno,
+                            List.of(Status.PENDENTE, Status.ATRASADO)
+                    );
 
             double valorDisponivel = comprovanteSalvo.getValor();
             LocalDate dataPagamento = comprovanteSalvo.getDataEnvio().toLocalDate();
 
-            List<Mensalidade> mensalidadesComDesconto = new ArrayList<>();
-            for (Mensalidade mensalidade : mensalidades) {
-                LocalDate dataVencimento = mensalidade.getDataVencimento();
-                long diasAntecedencia = ChronoUnit.DAYS.between(dataPagamento, dataVencimento);
-
-                if (diasAntecedencia >= 12 && dataPagamento.isBefore(dataVencimento)) {
-                    mensalidadesComDesconto.add(mensalidade);
+            List<Mensalidade> comDesconto = new ArrayList<>();
+            for (Mensalidade m : mensalidades) {
+                long diasAntecedencia = ChronoUnit.DAYS.between(dataPagamento, m.getDataVencimento());
+                if (diasAntecedencia >= 12 && dataPagamento.isBefore(m.getDataVencimento())) {
+                    comDesconto.add(m);
                 }
             }
 
-                for (Mensalidade mensalidade : mensalidades) {
+            if (!mensalidades.isEmpty()) {
+                Mensalidade primeira = mensalidades.get(0);
+                boolean aplicaDescPrimeira = comDesconto.contains(primeira);
+                double valorPrimeira = aplicaDescPrimeira
+                        ? primeira.getValor() - 10.0
+                        : primeira.getValor();
+
+                if (valorDisponivel < valorPrimeira) {
+                    enviarEmailFalha(aluno, valorDisponivel, valorPrimeira, emailDestino);
+                    System.out.println("❌ Valor insuficiente: precisava de R$ "
+                            + valorPrimeira + ", recebeu R$ " + valorDisponivel);
+                    return;
+                }
+            }
+
+            for (Mensalidade m : mensalidades) {
                 if (valorDisponivel <= 0) break;
 
-                double valorOriginal = mensalidade.getValor();
-                boolean aplicaDesconto = mensalidadesComDesconto.contains(mensalidade);
-                double valorFinal = aplicaDesconto ? valorOriginal - 10.0 : valorOriginal;
+                boolean aplicaDesc = comDesconto.contains(m);
+                double valorFinal = aplicaDesc
+                        ? m.getValor() - 10.0
+                        : m.getValor();
 
                 if (valorDisponivel >= valorFinal) {
-                    if (aplicaDesconto) {
-                        System.out.println("🎉 Desconto aplicado para " +
-                                mensalidade.getDataVencimento().getMonthValue() + "/"
-                                + mensalidade.getDataVencimento().getYear());
+                    if (aplicaDesc) {
+                        System.out.println("🎉 Desconto aplicado em "
+                                + m.getDataVencimento().getMonthValue() + "/"
+                                + m.getDataVencimento().getYear());
                     }
 
-                    mensalidade.setStatus(Status.PAGO);
-                    mensalidade.setDataPagamento(comprovanteSalvo.getDataEnvio());
-                    mensalidade.setComprovante(comprovanteSalvo);
-                    mensalidade.setValor(valorFinal);
+                    m.setStatus(Status.PAGO);
+                    m.setDataPagamento(comprovanteSalvo.getDataEnvio());
+                    m.setComprovante(comprovanteSalvo);
+                    m.setValor(valorFinal);
 
                     valorDisponivel -= valorFinal;
-                    mensalidadeRepository.save(mensalidade);
+                    mensalidadeRepository.save(m);
 
-                    System.out.println("✅ Mensalidade " + mensalidade.getDataVencimento().getMonthValue() + "/"
-                            + mensalidade.getDataVencimento().getYear() + " paga: R$ " + valorFinal);
+                    System.out.println("✅ Mensalidade "
+                            + m.getDataVencimento().getMonthValue() + "/"
+                            + m.getDataVencimento().getYear() + " paga: R$ " + valorFinal);
                 }
             }
 
             if (valorDisponivel > 0) {
                 System.out.println("⚠️ Valor excedente: R$ " + valorDisponivel);
-            } //isso aqui meio que fodasse coloquei só pra saber pq se a pessoa
-            // pagou a mensalidade e sobrou a culpa é dela
+            }
+
+            enviarEmailDeConfirmacao(aluno, comprovanteSalvo.getValor(), emailDestino);
 
         } catch (Exception e) {
             System.err.println("❌ Erro ao processar pagamento:");
             e.printStackTrace();
         }
     }
+
+
+
+    private void enviarEmailDeConfirmacao(Aluno aluno,
+                                          double recebido,
+                                          String emailDestino) {
+        try {
+            String nome = (aluno.getNomeSocial() != null && !aluno.getNomeSocial().isBlank())
+                    ? aluno.getNomeSocial()
+                    : aluno.getNome();
+
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, false, "UTF-8");
+
+            helper.setTo(emailDestino);
+            helper.setSubject("Confirmação de Pagamento");
+            helper.setFrom(EMAIL);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("<p>Olá, ").append(nome).append("!</p>");
+            sb.append("<p>Recebemos seu comprovante no valor de <b>R$ ")
+                    .append(String.format("%.2f", recebido))
+                    .append("</b> e processamos o pagamento com sucesso.</p>");
+            sb.append("<p>Obrigado por manter suas mensalidades em dia! 😊</p>");
+
+            helper.setText(sb.toString(), true);
+            mailSender.send(msg);
+
+            System.out.println("✉️ Email de confirmação enviado para: " + emailDestino);
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao enviar email de confirmação:");
+            e.printStackTrace();
+        }
+    }
+
+    private void enviarEmailFalha(Aluno aluno,
+                                  double recebido,
+                                  double minimoNecessario,
+                                  String emailDestino) {
+        try {
+            String nome = (aluno.getNomeSocial() != null && !aluno.getNomeSocial().isBlank())
+                    ? aluno.getNomeSocial()
+                    : aluno.getNome();
+
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, false, "UTF-8");
+
+            helper.setTo(emailDestino);
+            helper.setSubject("Falha na Confirmação de Pagamento");
+            helper.setFrom(EMAIL);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("<p>Olá, ").append(nome).append(".</p>");
+            sb.append("<p>Recebemos seu comprovante no valor de <b>R$ ")
+                    .append(String.format("%.2f", recebido))
+                    .append("</b>, mas o valor mínimo necessário para quitação é de <b>R$ ")
+                    .append(String.format("%.2f", minimoNecessario))
+                    .append("</b>.</p>");
+            sb.append("<p>Por favor, verifique o valor e envie um novo comprovante.</p>");
+
+            helper.setText(sb.toString(), true);
+            mailSender.send(msg);
+
+            System.out.println("✉️ Email de falha enviado para: " + emailDestino);
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao enviar email de falha:");
+            e.printStackTrace();
+        }
+    }
+
 }

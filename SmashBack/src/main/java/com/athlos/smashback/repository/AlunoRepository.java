@@ -28,9 +28,13 @@ public interface AlunoRepository extends JpaRepository<Aluno, Integer>, JpaSpeci
 
     List<Aluno> findAll(@Nullable Specification<Aluno> spec);
 
-    @Query("SELECT a FROM Aluno a " +
-            "WHERE a.email = :email " +
-            "OR EXISTS (SELECT r FROM a.responsaveis r WHERE r.email = :email)")
-    Optional<Aluno> findByAlunoOrResponsavelEmail(String email);
+    @Query("""
+        SELECT DISTINCT a
+        FROM Aluno a
+        LEFT JOIN a.responsaveis r
+        WHERE a.email = :email
+           OR r.email = :email
+        """)
+    Optional<Aluno> findByEmailOrResponsavelEmail(@Param("email") String email);
 
 }
