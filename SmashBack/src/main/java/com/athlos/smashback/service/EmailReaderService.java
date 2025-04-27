@@ -80,7 +80,7 @@ public class EmailReaderService {
                 }
 
                 Aluno aluno = alunoOpt.get();
-                //caso tenha nome social, usar ele
+
                 String nomeAluno = (aluno.getNomeSocial() != null && !aluno.getNomeSocial().isBlank())
                         ? aluno.getNomeSocial()
                         : aluno.getNome();
@@ -329,6 +329,7 @@ public class EmailReaderService {
                     m.setDataPagamento(comprovanteSalvo.getDataEnvio());
                     m.setComprovante(comprovanteSalvo);
                     m.setValor(valorFinal);
+                    m.setFormaPagamento("Pix");
 
                     valorDisponivel -= valorFinal;
                     mensalidadeRepository.save(m);
