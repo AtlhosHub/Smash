@@ -38,6 +38,10 @@ public class Mensalidade {
     @Schema(description = "Valor da mensalidade", example = "150.00")
     private Double valor;
 
+    @Column(name = "forma_pagamento", nullable = true)
+    @Schema(description = "Forma de pagamento usada", example = "Pix")
+    private String formaPagamento;
+
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "comprovante_id")
     @Schema(description = "Comprovante associado à mensalidade")
