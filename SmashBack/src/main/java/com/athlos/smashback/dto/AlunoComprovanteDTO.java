@@ -12,6 +12,9 @@ import java.time.LocalDateTime;
 @Schema(description = "DTO que representa o status de pagamento de mensalidades de um aluno")
 public class AlunoComprovanteDTO {
 
+    @Schema(description = "Identificador único da mensalidade", example = "1")
+    private Long idMensalidade;
+
     @Schema(description = "Identificador único do aluno", example = "1")
     private int id;
 

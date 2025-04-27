@@ -79,8 +79,8 @@ public class AlunoComprovanteService {
                     continue;
                 }
 
-                // 6. Adiciona ao resultado, observando ordem id, nome, ativo, dataEnvio, status
                 resultado.add(new AlunoComprovanteDTO(
+                        m.getId(),
                         aluno.getId(),
                         aluno.getNome(),
                         aluno.isAtivo(),
