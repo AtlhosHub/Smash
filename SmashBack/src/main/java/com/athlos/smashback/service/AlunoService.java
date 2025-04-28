@@ -1,6 +1,8 @@
 package com.athlos.smashback.service;
 
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
+import com.athlos.smashback.exception.DataConflictException;
+import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.model.Endereco;
@@ -44,7 +46,11 @@ public class AlunoService {
     }
 
     public ResponseEntity<Aluno> buscarAluno(int id) {
-        return alunoRepository.existsById(id) ? ResponseEntity.ok(alunoRepository.findById(id).get()) : ResponseEntity.notFound().build();
+        if(!alunoRepository.existsById(id)){
+            throw new ResourceNotFoundException("Aluno não encontrado");
+        }
+
+        return ResponseEntity.ok(alunoRepository.findById(id).get());
     }
 
     public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(AlunoFilter filtro) {
@@ -59,15 +65,16 @@ public class AlunoService {
     @Transactional
     public ResponseEntity<Aluno> cadastrarAluno(Aluno aluno) {
         if (alunoRepository.existsByEmailOrCpfOrRg(aluno.getEmail(), aluno.getCpf(), aluno.getRg())) {
-            return ResponseEntity.status(409).body(aluno);
+            throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
         }
 
-        Optional<Endereco> enderecoExistente = enderecoRepository.findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCep(
+        Optional<Endereco> enderecoExistente = enderecoRepository.findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCepAndEstado(
                 aluno.getEndereco().getLogradouro(),
                 aluno.getEndereco().getNumLogradouro(),
                 aluno.getEndereco().getBairro(),
                 aluno.getEndereco().getCidade(),
-                aluno.getEndereco().getCep()
+                aluno.getEndereco().getCep(),
+                aluno.getEndereco().getEstado()
         );
         aluno.setEndereco(enderecoExistente.orElseGet(() -> enderecoRepository.save(aluno.getEndereco())));
 
@@ -88,14 +95,14 @@ public class AlunoService {
             alunoRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.notFound().build();
+        throw new ResourceNotFoundException("Aluno não encontrado");
     }
 
     public ResponseEntity<Aluno> atualizarAluno(int id, Aluno novoAluno) {
         if (alunoRepository.existsByEmailAndIdIsNot(novoAluno.getEmail(), id) ||
                 alunoRepository.existsByCpfAndIdIsNot(novoAluno.getCpf(), id) ||
                 alunoRepository.existsByRgAndIdIsNot(novoAluno.getRg(), id)) {
-            return ResponseEntity.status(409).body(novoAluno);
+            throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
         }
 
         return alunoRepository.findById(id).map(aluno -> {
@@ -116,12 +123,13 @@ public class AlunoService {
             aluno.setGenero(novoAluno.getGenero());
             aluno.setDeficiencia(novoAluno.getDeficiencia());
 
-            Optional<Endereco> enderecoExistente = enderecoRepository.findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCep(
+            Optional<Endereco> enderecoExistente = enderecoRepository.findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCepAndEstado(
                     novoAluno.getEndereco().getLogradouro(),
                     novoAluno.getEndereco().getNumLogradouro(),
                     novoAluno.getEndereco().getBairro(),
                     novoAluno.getEndereco().getCidade(),
-                    novoAluno.getEndereco().getCep()
+                    novoAluno.getEndereco().getCep(),
+                    novoAluno.getEndereco().getEstado()
             );
             aluno.setEndereco(enderecoExistente.orElseGet(() -> enderecoRepository.save(novoAluno.getEndereco())));
 
@@ -134,7 +142,7 @@ public class AlunoService {
             }
 
             return ResponseEntity.ok(alunoRepository.save(aluno));
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+        }).orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado"));
     }
 
     public void gerarMensalidades(Aluno aluno) {

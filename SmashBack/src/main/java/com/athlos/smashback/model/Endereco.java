@@ -39,6 +39,10 @@ public class Endereco {
     @Schema(description = "Cidade do endereço", example = "São Paulo")
     private String cidade;
 
+    @NotBlank(message = "O estado não pode ficar em branco")
+    @Schema(description = "Estado do endereço", example = "São Paulo")
+    private String estado;
+
     @NotBlank(message = "O cep não pode ficar em branco")
     @Schema(description = "CEP do endereço", example = "12345-678")
     private String cep;
