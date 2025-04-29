@@ -1,13 +1,16 @@
 package com.athlos.smashback.service;
 
 import com.athlos.smashback.config.GerenciadorTokenJWT;
-import com.athlos.smashback.dto.UsuarioInfoDTO;
-import com.athlos.smashback.dto.UsuarioListaDTO;
-import com.athlos.smashback.dto.UsuarioMapper;
-import com.athlos.smashback.dto.UsuarioTokenDTO;
+import com.athlos.smashback.dto.*;
+import com.athlos.smashback.exception.DataConflictException;
+import com.athlos.smashback.exception.ResourceNotFoundException;
+import com.athlos.smashback.filter.UsuarioFilter;
 import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.repository.UsuarioRepository;
+import com.athlos.smashback.specification.UsuarioSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,7 +18,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -34,7 +36,7 @@ public class UsuarioService {
     private AuthenticationManager authenticationManager;
 
     public UsuarioTokenDTO autenticar(Usuario usuario) {
-        Usuario usuarioAutenticado = usuarioRepository.findByEmail(usuario.getEmail()).orElseThrow(() -> new ResponseStatusException(404, "Email do usuário não cadastrado", null));
+        Usuario usuarioAutenticado = usuarioRepository.findByEmail(usuario.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Email do usuário não cadastrado"));
         final UsernamePasswordAuthenticationToken credentials = new UsernamePasswordAuthenticationToken(usuario.getEmail(), usuario.getSenha());
         final Authentication authentication = authenticationManager.authenticate(credentials);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -45,15 +47,23 @@ public class UsuarioService {
     }
 
     public ResponseEntity<List<UsuarioListaDTO>> listarUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<Usuario> usuarios = usuarioRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
         List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
 
         return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
     }
 
+    public ResponseEntity<List<UsuarioListaDTO>> usuarioFiltro(UsuarioFilter filtro){
+        Specification<Usuario> spec = UsuarioSpecification.filtrarPor(filtro);
+        List<Usuario> usuarios = usuarioRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "nome"));
+
+        List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
+        return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
+    }
+
     public ResponseEntity<UsuarioInfoDTO> buscarUsuarioPorId(int id) {
         if (!usuarioRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("Usuário não encontrado");
         }
         Usuario usuario = usuarioRepository.findById(id).get();
         UsuarioInfoDTO dadosUsuario = new UsuarioInfoDTO(usuario.getNome(), usuario.getEmail(), usuario.getCelular(), usuario.getDataNascimento(), usuario.getNomeSocial(), usuario.getGenero(), usuario.getTelefone(), usuario.getCargo());
@@ -62,9 +72,13 @@ public class UsuarioService {
     }
 
     public ResponseEntity<Usuario> adicionarUsuario(Usuario usuario) {
+        if(usuarioRepository.existsByEmail(usuario.getEmail())){
+            throw new DataConflictException("E-mail de usuário já cadastrado");
+        }
+
         String senhaCriptografada = passwordEncoder.encode(usuario.getSenha());
         usuario.setSenha(senhaCriptografada);
-        return usuarioRepository.existsByEmail(usuario.getEmail()) ? ResponseEntity.status(409).body(usuario) : ResponseEntity.ok(usuarioRepository.save(usuario));
+        return ResponseEntity.ok(usuarioRepository.save(usuario));
     }
 
     public ResponseEntity<Void> removerUsuario(int id) {
@@ -72,12 +86,12 @@ public class UsuarioService {
             usuarioRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.notFound().build();
+        throw new ResourceNotFoundException("Usuário não encontrado");
     }
 
     public ResponseEntity<Usuario> atualizarUsuario(int id, Usuario novoUsuario) {
         if (usuarioRepository.existsByEmailAndIdIsNot(novoUsuario.getEmail(), id)) {
-            return ResponseEntity.status(409).body(novoUsuario);
+            throw new DataConflictException("E-mail de usuário já cadastrado");
         }
 
         return usuarioRepository.findById(id).map(usuario -> {
@@ -90,6 +104,6 @@ public class UsuarioService {
             usuario.setDeletado(novoUsuario.isDeletado());
             usuario.setNomeSocial(novoUsuario.getNomeSocial());
             return ResponseEntity.ok(usuarioRepository.save(usuario));
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+        }).orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
     }
 }
