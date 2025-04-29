@@ -1,6 +1,8 @@
 package com.athlos.smashback.validation;
 
+import com.athlos.smashback.exception.InvalidDataException;
 import com.athlos.smashback.model.Aluno;
+import com.athlos.smashback.model.Responsavel;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -14,11 +16,14 @@ public class ResponsaveisSeMenorValidator implements ConstraintValidator<Respons
     public boolean isValid(Aluno aluno, ConstraintValidatorContext context) {
         if (aluno == null || aluno.getDataNascimento() == null) return true;
 
-        int idade = Period.between(aluno.getDataNascimento(), LocalDate.now()).getYears();
         List<?> responsaveis = aluno.getResponsaveis();
 
-        if (idade < 18 && (responsaveis == null || responsaveis.isEmpty())) {
-            return false;
+        if (aluno.isMenor() && (responsaveis == null || responsaveis.isEmpty())) {
+            throw new InvalidDataException("O aluno menor de idade deve ter pelo menos um responsável");
+        }
+
+        if (!aluno.isMenor() && (aluno.getEmail() == null || aluno.getEmail().isEmpty())) {
+            throw new InvalidDataException("O aluno maior de idade deve ter um e-mail");
         }
 
         return true;
