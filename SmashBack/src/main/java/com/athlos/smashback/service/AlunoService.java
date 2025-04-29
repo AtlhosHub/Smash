@@ -15,6 +15,7 @@ import com.athlos.smashback.repository.MensalidadeRepository;
 import com.athlos.smashback.repository.ResponsavelRepository;
 import com.athlos.smashback.service.AlunoComprovanteService;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +42,7 @@ public class AlunoService {
     }
 
     public ResponseEntity<List<Aluno>> listarAlunos() {
-        List<Aluno> alunos = alunoRepository.findAll();
+        List<Aluno> alunos = alunoRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
         return alunos.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(alunos);
     }
 
