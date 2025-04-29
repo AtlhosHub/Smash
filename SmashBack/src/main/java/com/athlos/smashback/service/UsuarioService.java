@@ -9,6 +9,7 @@ import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.repository.UsuarioRepository;
 import com.athlos.smashback.specification.UsuarioSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -46,7 +47,7 @@ public class UsuarioService {
     }
 
     public ResponseEntity<List<UsuarioListaDTO>> listarUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<Usuario> usuarios = usuarioRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
         List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
 
         return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
@@ -54,7 +55,7 @@ public class UsuarioService {
 
     public ResponseEntity<List<UsuarioListaDTO>> usuarioFiltro(UsuarioFilter filtro){
         Specification<Usuario> spec = UsuarioSpecification.filtrarPor(filtro);
-        List<Usuario> usuarios = usuarioRepository.findAll(spec);
+        List<Usuario> usuarios = usuarioRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "nome"));
 
         List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
         return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
