@@ -102,12 +102,14 @@ public class AlunoService {
     }
 
     public ResponseEntity<Aluno> atualizarAluno(int id, Aluno novoAluno) {
+        // Verifica conflitos de dados únicos (e-mail, CPF, RG)
         if (alunoRepository.existsByEmailAndIdIsNot(novoAluno.getEmail(), id) ||
                 alunoRepository.existsByCpfAndIdIsNot(novoAluno.getCpf(), id) ||
                 alunoRepository.existsByRgAndIdIsNot(novoAluno.getRg(), id)) {
             throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
         }
 
+        // Busca o aluno existente e atualiza os dados
         return alunoRepository.findById(id).map(aluno -> {
             // Atualiza campos básicos
             aluno.setNome(novoAluno.getNome());
@@ -142,39 +144,27 @@ public class AlunoService {
                 aluno.setEndereco(enderecoExistente.orElseGet(() -> enderecoRepository.save(novoEndereco)));
             }
 
-            // Atualiza responsáveis apenas se menor de idade
+            // Atualiza responsáveis (caso o aluno seja menor de idade)
             if (novoAluno.isMenor()) {
                 List<Responsavel> responsaveisAtualizados = Optional.ofNullable(novoAluno.getResponsaveis())
                         .orElse(Collections.emptyList())
                         .stream()
-                        .map(responsavelNovo -> {
-                            return responsavelRepository.findByCpf(responsavelNovo.getCpf())
-                                    .map(responsavelExistente -> {
-                                        boolean precisaAtualizar = false;
-
-                                        if (!Objects.equals(responsavelExistente.getNome(), responsavelNovo.getNome())) {
-                                            responsavelExistente.setNome(responsavelNovo.getNome());
-                                            precisaAtualizar = true;
-                                        }
-                                        if (!Objects.equals(responsavelExistente.getTelefone(), responsavelNovo.getTelefone())) {
-                                            responsavelExistente.setTelefone(responsavelNovo.getTelefone());
-                                            precisaAtualizar = true;
-                                        }
-                                        // Adicione mais comparações de campos aqui se necessário
-
-                                        return precisaAtualizar
-                                                ? responsavelRepository.save(responsavelExistente)
-                                                : responsavelExistente;
-                                    })
-                                    .orElseGet(() -> responsavelRepository.save(responsavelNovo));
-                        })
+                        .map(responsavelNovo ->
+                                responsavelRepository.findByCpf(responsavelNovo.getCpf())
+                                        .map(responsavelExistente -> {
+                                            responsavelNovo.setId(responsavelExistente.getId()); // Garante update
+                                            return responsavelRepository.save(responsavelNovo);
+                                        })
+                                        .orElseGet(() -> responsavelRepository.save(responsavelNovo))
+                        )
                         .collect(Collectors.toList());
 
                 aluno.setResponsaveis(responsaveisAtualizados);
             } else {
-                aluno.setResponsaveis(Collections.emptyList()); // ou mantenha os atuais, dependendo da regra de negócio
+                aluno.setResponsaveis(Collections.emptyList()); // Ou mantenha os atuais, se preferir
             }
 
+            // Salva e retorna o aluno atualizado
             return ResponseEntity.ok(alunoRepository.save(aluno));
         }).orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado"));
     }
