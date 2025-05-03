@@ -20,7 +20,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -107,6 +109,7 @@ public class AlunoService {
         }
 
         return alunoRepository.findById(id).map(aluno -> {
+            // Atualiza campos básicos
             aluno.setNome(novoAluno.getNome());
             aluno.setEmail(novoAluno.getEmail());
             aluno.setNacionalidade(novoAluno.getNacionalidade());
@@ -124,27 +127,58 @@ public class AlunoService {
             aluno.setGenero(novoAluno.getGenero());
             aluno.setDeficiencia(novoAluno.getDeficiencia());
 
-            Optional<Endereco> enderecoExistente = enderecoRepository.findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCepAndEstado(
-                    novoAluno.getEndereco().getLogradouro(),
-                    novoAluno.getEndereco().getNumLogradouro(),
-                    novoAluno.getEndereco().getBairro(),
-                    novoAluno.getEndereco().getCidade(),
-                    novoAluno.getEndereco().getCep(),
-                    novoAluno.getEndereco().getEstado()
-            );
-            aluno.setEndereco(enderecoExistente.orElseGet(() -> enderecoRepository.save(novoAluno.getEndereco())));
+            // Atualiza ou reutiliza endereço existente
+            Endereco novoEndereco = novoAluno.getEndereco();
+            if (novoEndereco != null) {
+                Optional<Endereco> enderecoExistente = enderecoRepository
+                        .findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCepAndEstado(
+                                novoEndereco.getLogradouro(),
+                                novoEndereco.getNumLogradouro(),
+                                novoEndereco.getBairro(),
+                                novoEndereco.getCidade(),
+                                novoEndereco.getCep(),
+                                novoEndereco.getEstado()
+                        );
+                aluno.setEndereco(enderecoExistente.orElseGet(() -> enderecoRepository.save(novoEndereco)));
+            }
 
+            // Atualiza responsáveis apenas se menor de idade
             if (novoAluno.isMenor()) {
-                List<Responsavel> responsaveis = novoAluno.getResponsaveis().stream()
-                        .map(responsavel -> responsavelRepository.findByCpf(responsavel.getCpf())
-                                .orElseGet(() -> responsavelRepository.save(responsavel)))
+                List<Responsavel> responsaveisAtualizados = Optional.ofNullable(novoAluno.getResponsaveis())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .map(responsavelNovo -> {
+                            return responsavelRepository.findByCpf(responsavelNovo.getCpf())
+                                    .map(responsavelExistente -> {
+                                        boolean precisaAtualizar = false;
+
+                                        if (!Objects.equals(responsavelExistente.getNome(), responsavelNovo.getNome())) {
+                                            responsavelExistente.setNome(responsavelNovo.getNome());
+                                            precisaAtualizar = true;
+                                        }
+                                        if (!Objects.equals(responsavelExistente.getTelefone(), responsavelNovo.getTelefone())) {
+                                            responsavelExistente.setTelefone(responsavelNovo.getTelefone());
+                                            precisaAtualizar = true;
+                                        }
+                                        // Adicione mais comparações de campos aqui se necessário
+
+                                        return precisaAtualizar
+                                                ? responsavelRepository.save(responsavelExistente)
+                                                : responsavelExistente;
+                                    })
+                                    .orElseGet(() -> responsavelRepository.save(responsavelNovo));
+                        })
                         .collect(Collectors.toList());
-                aluno.setResponsaveis(responsaveis);
+
+                aluno.setResponsaveis(responsaveisAtualizados);
+            } else {
+                aluno.setResponsaveis(Collections.emptyList()); // ou mantenha os atuais, dependendo da regra de negócio
             }
 
             return ResponseEntity.ok(alunoRepository.save(aluno));
         }).orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado"));
     }
+
 
     public void gerarMensalidades(Aluno aluno) {
         LocalDate dataBase = aluno.getDataInclusao().toLocalDate().withDayOfMonth(5);
