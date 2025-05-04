@@ -65,8 +65,7 @@ public class AlunoController {
     })
     public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(
             @RequestBody AlunoFilter filtro) {
-        List<AlunoComprovanteDTO> lista = alunoComprovanteService.listarAlunosComComprovantes(filtro);
-        return ResponseEntity.ok(lista);
+        return alunoService.listarAlunosComComprovantes(filtro);
     }
 
     @PostMapping
