@@ -32,9 +32,19 @@ public class ListaEsperaService {
         Specification<ListaEspera> spec = ListaEsperaSpecification.filtrarPor(filtro);
         List<ListaEspera> listaEspera = listaEsperaRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "nome"));
 
-        List<ListaEsperaDTO> interessados = listaEspera.stream().map(interessado -> new ListaEsperaDTO(interessado.getId(), interessado.getNome(), interessado.getDataInteresse(), interessado.getHorarioPref().getHorarioAula())).toList();
-        return listaEspera.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(interessados);
+        List<ListaEsperaDTO> interessados = listaEspera.stream()
+                .map(interessado ->
+                        new ListaEsperaDTO(
+                                interessado.getId(),
+                                interessado.getNome(),
+                                interessado.getDataInteresse(),
+                                interessado.getHorarioPref().getHorarioAula()
+                        )
+                )
+                .toList();
+        return ResponseEntity.ok(interessados);
     }
+
 
     public ResponseEntity<ListaEspera> buscarInteressado(int id) {
         if(!listaEsperaRepository.existsById(id)){

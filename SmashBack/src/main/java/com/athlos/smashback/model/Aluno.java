@@ -13,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -114,4 +115,13 @@ public class Aluno {
     public boolean isMenor(){
         return Period.between(dataNascimento, LocalDate.now()).getYears() < 18;
     }
+
+    @OneToMany(
+            mappedBy = "aluno",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @JsonIgnoreProperties("aluno")
+    @Schema(description = "Mensalidades associadas ao aluno")
+    private List<Mensalidade> mensalidades = new ArrayList<>();
 }

@@ -31,7 +31,7 @@ public class ListaEspera {
 
     @PastOrPresent(message = "A data de interesse deve ser uma data presente ou passada")
     @Schema(description = "Data de interesse do interessado", example = "2025-04-21")
-    private LocalDate dataInteresse;
+    private LocalDateTime dataInteresse;
 
     @NotBlank(message = "O celular não pode ficar em branco")
     @Schema(description = "Número de celular do interessado", example = "(11) 91234-5678")
