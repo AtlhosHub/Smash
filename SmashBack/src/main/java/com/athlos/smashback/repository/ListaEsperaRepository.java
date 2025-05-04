@@ -11,9 +11,9 @@ import java.util.List;
 
 @Repository
 public interface ListaEsperaRepository extends JpaRepository<ListaEspera, Integer>, JpaSpecificationExecutor<ListaEspera> {
-    boolean existsByNomeAndEmail(String nome, String email);
+    boolean existsByNomeAndEmailIgnoreCase(String nome, String email);
 
-    boolean existsByNomeAndEmailAndIdIsNot(String nome, String email, int id);
+    boolean existsByNomeAndEmailIgnoreCaseAndIdIsNot(String nome, String email, int id);
 
     List<ListaEspera> findAll(@Nullable Specification<ListaEspera> spec);
 }

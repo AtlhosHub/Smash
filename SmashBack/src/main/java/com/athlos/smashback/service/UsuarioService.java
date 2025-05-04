@@ -74,7 +74,7 @@ public class UsuarioService {
     }
 
     public ResponseEntity<UsuarioInfoDTO> adicionarUsuario(Usuario usuario) {
-        if(usuarioRepository.existsByEmail(usuario.getEmail())){
+        if(usuarioRepository.existsByEmailIgnoreCase(usuario.getEmail())){
             throw new DataConflictException("E-mail de usuário já cadastrado");
         }
 
@@ -111,7 +111,7 @@ public class UsuarioService {
     }
 
     public ResponseEntity<UsuarioInfoDTO> atualizarUsuario(int id, Usuario novoUsuario) {
-        if (usuarioRepository.existsByEmailAndIdIsNot(novoUsuario.getEmail(), id)) {
+        if (usuarioRepository.existsByEmailIgnoreCaseAndIdIsNot(novoUsuario.getEmail(), id)) {
             throw new DataConflictException("E-mail de usuário já cadastrado");
         }
 

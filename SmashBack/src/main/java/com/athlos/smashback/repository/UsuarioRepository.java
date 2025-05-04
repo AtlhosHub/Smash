@@ -12,9 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer>, JpaSpecificationExecutor<Usuario> {
-    boolean existsByEmail(String email);
+    boolean existsByEmailIgnoreCase(String email);
 
-    boolean existsByEmailAndIdIsNot(String email, int id);
+    boolean existsByEmailIgnoreCaseAndIdIsNot(String email, int id);
 
     List<Usuario> findAllByDeletado(boolean deletado);
 

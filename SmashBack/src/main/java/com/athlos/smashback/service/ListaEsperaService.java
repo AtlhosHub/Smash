@@ -44,7 +44,7 @@ public class ListaEsperaService {
     }
 
     public ResponseEntity<ListaEspera> adicionarInteressado(ListaEspera listaEspera) {
-        if(listaEsperaRepository.existsByNomeAndEmail(listaEspera.getNome(), listaEspera.getEmail())){
+        if(listaEsperaRepository.existsByNomeAndEmailIgnoreCase(listaEspera.getNome(), listaEspera.getEmail())){
             throw new DataConflictException("Nome e e-mail de interessado já cadastrados");
         }
         return ResponseEntity.ok(listaEsperaRepository.save(listaEspera));
@@ -59,7 +59,7 @@ public class ListaEsperaService {
     }
 
     public ResponseEntity<ListaEspera> atualizarInteressado(int id, ListaEspera novoInteressado) {
-        if(listaEsperaRepository.existsByNomeAndEmailAndIdIsNot(novoInteressado.getNome(), novoInteressado.getEmail(), id)){
+        if(listaEsperaRepository.existsByNomeAndEmailIgnoreCaseAndIdIsNot(novoInteressado.getNome(), novoInteressado.getEmail(), id)){
             throw new DataConflictException("Nome e e-mail de interessado já cadastrados");
         }
 

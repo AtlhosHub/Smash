@@ -17,8 +17,6 @@ public interface AlunoRepository extends JpaRepository<Aluno, Integer>, JpaSpeci
 
     boolean existsById(int id);
 
-    boolean existsByEmailOrCpfOrRg(String email, String cpf, String rg);
-
     boolean existsByEmailAndIdIsNot(String email, int id);
 
     boolean existsByCpfAndIdIsNot(String cpf, int id);
@@ -31,9 +29,14 @@ public interface AlunoRepository extends JpaRepository<Aluno, Integer>, JpaSpeci
         SELECT DISTINCT a
         FROM Aluno a
         LEFT JOIN a.responsaveis r
-        WHERE a.email = :email
-           OR r.email = :email
+        WHERE LOWER(a.email) = LOWER(:email)
+           OR LOWER(r.email) = LOWER(:email)
         """)
     Optional<Aluno> findByEmailOrResponsavelEmail(@Param("email") String email);
 
+    boolean existsByCpfOrRg(String cpf, String rg);
+
+    boolean existsByEmailIgnoreCaseOrCpfOrRg(String email, String cpf, String rg);
+
+    boolean existsByEmailIgnoreCaseAndIdIsNot(String email, int id);
 }

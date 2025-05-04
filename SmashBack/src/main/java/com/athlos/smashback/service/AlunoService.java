@@ -66,8 +66,14 @@ public class AlunoService {
 
     @Transactional
     public ResponseEntity<Aluno> cadastrarAluno(Aluno aluno) {
-        if (alunoRepository.existsByEmailOrCpfOrRg(aluno.getEmail(), aluno.getCpf(), aluno.getRg())) {
-            throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
+        if(!aluno.isMenor()){
+            if (alunoRepository.existsByEmailIgnoreCaseOrCpfOrRg(aluno.getEmail(), aluno.getCpf(), aluno.getRg())) {
+                throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
+            }
+        }else{
+            if (alunoRepository.existsByCpfOrRg(aluno.getCpf(),aluno.getRg())){
+                throw new DataConflictException("RG ou CPF já cadastrados");
+            }
         }
 
         Optional<Endereco> enderecoExistente = enderecoRepository.findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCepAndEstado(
@@ -102,7 +108,7 @@ public class AlunoService {
 
     public ResponseEntity<Aluno> atualizarAluno(int id, Aluno novoAluno) {
         // Verifica conflitos de dados únicos (e-mail, CPF, RG)
-        if (alunoRepository.existsByEmailAndIdIsNot(novoAluno.getEmail(), id) ||
+        if ((!novoAluno.isMenor() && alunoRepository.existsByEmailIgnoreCaseAndIdIsNot(novoAluno.getEmail(), id)) ||
                 alunoRepository.existsByCpfAndIdIsNot(novoAluno.getCpf(), id) ||
                 alunoRepository.existsByRgAndIdIsNot(novoAluno.getRg(), id)) {
             throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
