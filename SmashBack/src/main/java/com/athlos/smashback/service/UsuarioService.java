@@ -5,6 +5,8 @@ import com.athlos.smashback.dto.*;
 import com.athlos.smashback.exception.DataConflictException;
 import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.filter.UsuarioFilter;
+import com.athlos.smashback.model.Aluno;
+import com.athlos.smashback.model.ListaEspera;
 import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.repository.UsuarioRepository;
 import com.athlos.smashback.specification.UsuarioSpecification;
@@ -88,6 +90,20 @@ public class UsuarioService {
 
     public ResponseEntity<Void> removerUsuario(int id) {
         if (usuarioRepository.existsById(id)) {
+            Usuario usuario  = usuarioRepository.findById(id).get();
+
+            for (Aluno aluno : usuario.getAlunos()) {
+                aluno.setUsuarioInclusao(null);
+            }
+
+            for (ListaEspera interessado : usuario.getInteressados()) {
+                interessado.setUsuarioInclusao(null);
+            }
+
+            for (Usuario u : usuario.getUsuariosCadastrados()) {
+                u.setUsuarioInclusao(null);
+            }
+
             usuarioRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         }
