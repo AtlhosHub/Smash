@@ -2,12 +2,9 @@ package com.athlos.smashback.validation;
 
 import com.athlos.smashback.exception.InvalidDataException;
 import com.athlos.smashback.model.Aluno;
-import com.athlos.smashback.model.Responsavel;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.List;
 
 public class ResponsaveisSeMenorValidator implements ConstraintValidator<ResponsaveisSeMenor, Aluno> {
