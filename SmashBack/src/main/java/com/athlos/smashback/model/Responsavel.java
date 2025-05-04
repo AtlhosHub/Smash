@@ -51,6 +51,9 @@ public class Responsavel {
     @Schema(description = "Gênero do responsável", example = "Feminino")
     private String genero;
 
+    @Schema(description = "Prossissão do responsável", example = "Engenheiro")
+    private String profissao;
+
     @ManyToMany(mappedBy = "responsaveis")
     @JsonIgnoreProperties("responsaveis")
     @Schema(description = "Lista de alunos associados ao responsável")

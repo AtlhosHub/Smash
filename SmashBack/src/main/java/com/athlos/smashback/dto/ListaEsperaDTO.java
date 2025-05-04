@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor
@@ -19,8 +20,11 @@ public class ListaEsperaDTO {
     @Schema(description = "Nome do interessado", example = "Maria Silva")
     private String nome;
 
-    @Schema(description = "Data de interesse do interessado", example = "2025-04-21")
-    private LocalDate dataInteresse;
+    @Schema(
+            description = "Data/hora de interesse do interessado; se não for passada, será preenchida com o timestamp atual",
+            example = "2025-04-21T14:30:00"
+    )
+    private LocalDateTime dataInteresse;
 
     @Schema(description = "Horário de preferência do interessado", example = "14:30:00")
     private LocalTime horarioPreferencia;
