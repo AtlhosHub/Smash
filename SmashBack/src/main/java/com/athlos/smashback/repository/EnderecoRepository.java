@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface EnderecoRepository extends JpaRepository<Endereco, Integer> {
-    Optional<Endereco> findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCep(String logradouro, String numLogradouro, String bairro, String cidade, String cep);
+    Optional<Endereco> findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCepAndEstado(String logradouro, String numLogradouro, String bairro, String cidade, String cep, String estado);
 }

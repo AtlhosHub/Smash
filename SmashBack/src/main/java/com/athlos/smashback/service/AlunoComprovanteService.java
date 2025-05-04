@@ -8,6 +8,7 @@ import com.athlos.smashback.model.enums.Status;
 import com.athlos.smashback.repository.AlunoRepository;
 import com.athlos.smashback.repository.MensalidadeRepository;
 import com.athlos.smashback.specification.AlunoSpecification;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -39,7 +40,7 @@ public class AlunoComprovanteService {
     public List<AlunoComprovanteDTO> listarAlunosComComprovantes(AlunoFilter filtro) {
         // 1. Filtra alunos
         Specification<Aluno> spec = AlunoSpecification.filtrarPor(filtro);
-        List<Aluno> alunos = alunoRepository.findAll(spec);
+        List<Aluno> alunos = alunoRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "nome"));
         if (alunos.isEmpty()) return Collections.emptyList();
 
         List<AlunoComprovanteDTO> resultado = new ArrayList<>();

@@ -31,7 +31,6 @@ public class Aluno {
     @Schema(description = "Nome completo do aluno", example = "Carlos Oliveira")
     private String nome;
 
-    @NotBlank(message = "O e-mail não pode ficar em branco")
     @Email(message = "O e-mail deve ser válido (Possuir @)")
     @Schema(description = "E-mail do aluno", example = "carlos.oliveira@email.com")
     private String email;

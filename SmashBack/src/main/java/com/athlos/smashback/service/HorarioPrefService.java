@@ -1,5 +1,7 @@
 package com.athlos.smashback.service;
 
+import com.athlos.smashback.exception.DataConflictException;
+import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.model.HorarioPref;
 import com.athlos.smashback.repository.HorarioPrefRepository;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +23,7 @@ public class HorarioPrefService {
 
     public ResponseEntity<HorarioPref> cadastrarHorario(HorarioPref horarioPref) {
         if(horarioPrefRepository.existsByHorarioAula(horarioPref.getHorarioAula())) {
-            return ResponseEntity.status(409).body(horarioPref);
+            throw new DataConflictException("Horário já cadastrado");
         }
 
         return ResponseEntity.ok(horarioPrefRepository.save(horarioPref));
@@ -32,17 +34,17 @@ public class HorarioPrefService {
             horarioPrefRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.notFound().build();
+        throw new ResourceNotFoundException("Horário não encontrado");
     }
 
     public ResponseEntity<HorarioPref> atualizarHorario(int id, HorarioPref novoHorario) {
         if(horarioPrefRepository.existsByHorarioAulaAndIdIsNot(novoHorario.getHorarioAula(), id)) {
-            return ResponseEntity.status(409).body(novoHorario);
+            throw new DataConflictException("Horário já cadastrado");
         }
 
         return horarioPrefRepository.findById(id).map(horario -> {
             horario.setHorarioAula(novoHorario.getHorarioAula());
             return ResponseEntity.ok(horarioPrefRepository.save(horario));
-        }).orElse(ResponseEntity.notFound().build());
+        }).orElseThrow(() -> new ResourceNotFoundException("Horário não encontrado"));
     }
 }

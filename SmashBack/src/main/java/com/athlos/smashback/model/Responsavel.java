@@ -30,7 +30,6 @@ public class Responsavel {
     @Schema(description = "CPF do responsável", example = "98765432100")
     private String cpf;
 
-    @NotBlank(message = "O celular do responsável não pode ficar em branco")
     @Schema(description = "Número de celular do responsável", example = "(11) 91234-5678")
     private String celular;
 
