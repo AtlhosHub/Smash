@@ -49,7 +49,7 @@ public class UsuarioService {
     }
 
     public ResponseEntity<List<UsuarioListaDTO>> listarUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
+        List<Usuario> usuarios = usuarioRepository.findAll(Sort.by(Sort.Order.asc("nome").ignoreCase()));
         List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
 
         return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
@@ -57,7 +57,7 @@ public class UsuarioService {
 
     public ResponseEntity<List<UsuarioListaDTO>> usuarioFiltro(UsuarioFilter filtro){
         Specification<Usuario> spec = UsuarioSpecification.filtrarPor(filtro);
-        List<Usuario> usuarios = usuarioRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "nome"));
+        List<Usuario> usuarios = usuarioRepository.findAll(Specification.where(spec), Sort.by(Sort.Order.asc("nome").ignoreCase());
 
         List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
         return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
