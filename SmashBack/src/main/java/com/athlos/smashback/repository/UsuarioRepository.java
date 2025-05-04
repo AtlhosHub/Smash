@@ -18,7 +18,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer>, JpaS
 
     List<Usuario> findAllByDeletado(boolean deletado);
 
-    Optional<Usuario> findByEmail(String email);
+    Optional<Usuario> findByEmailIgnoreCase(String email);
 
     List<Usuario> findAll(@Nullable Specification<Usuario> spec);
 }

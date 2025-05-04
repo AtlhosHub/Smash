@@ -36,7 +36,6 @@ public class Usuario {
     @Schema(description = "Senha do usuário", example = "Senha@123")
     private String senha;
 
-    @NotBlank(message = "O celular não pode ficar em branco")
     @Schema(description = "Número de celular do usuário", example = "(11) 91234-5678")
     private String celular;
 

@@ -1,5 +1,10 @@
 package com.athlos.smashback.controller;
 
+import com.athlos.smashback.exception.ResourceNotFoundException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +32,13 @@ public class MensalidadeController {
     private MensalidadeRepository mensalidadeRepository;
 
     @PutMapping("/{id}/pagar")
+    @Operation(summary = "Registrar pagamento manualmente", description = "Registra o pagamento realizado por um aluno.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pagamento registrado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
+            @ApiResponse(responseCode = "404", description = "Mensalidade não encontrada", content = @Content()),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
+    })
     public ResponseEntity<Mensalidade> pagarManual(
             @PathVariable Long id,
             @RequestBody @Valid PagamentoManualDTO dto) {
@@ -38,6 +50,6 @@ public class MensalidadeController {
             m.setFormaPagamento(dto.getFormaPagamento());
             mensalidadeRepository.save(m);
             return ResponseEntity.ok(m);
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+        }).orElseThrow(() -> new ResourceNotFoundException("Mensalidade não encontrada"));
     }
 }

@@ -40,7 +40,7 @@ public class AlunoComprovanteService {
     public List<AlunoComprovanteDTO> listarAlunosComComprovantes(AlunoFilter filtro) {
         // 1. Filtra alunos
         Specification<Aluno> spec = AlunoSpecification.filtrarPor(filtro);
-        List<Aluno> alunos = alunoRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "nome"));
+        List<Aluno> alunos = alunoRepository.findAll(Specification.where(spec), Sort.by(Sort.Order.asc("nome").ignoreCase()));
         if (alunos.isEmpty()) return Collections.emptyList();
 
         List<AlunoComprovanteDTO> resultado = new ArrayList<>();

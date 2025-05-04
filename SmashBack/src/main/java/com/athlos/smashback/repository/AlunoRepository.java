@@ -1,6 +1,5 @@
 package com.athlos.smashback.repository;
 
-import com.athlos.smashback.dto.AlunoComprovanteDTO;
 import com.athlos.smashback.model.Aluno;
 import jakarta.annotation.Nullable;
 import org.springframework.data.jpa.domain.Specification;

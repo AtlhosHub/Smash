@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,7 +43,7 @@ public class AlunoService {
     }
 
     public ResponseEntity<List<Aluno>> listarAlunos() {
-        List<Aluno> alunos = alunoRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
+        List<Aluno> alunos = alunoRepository.findAll(Sort.by(Sort.Order.asc("nome").ignoreCase()));
         return alunos.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(alunos);
     }
 

@@ -36,7 +36,7 @@ public class UsuarioService {
     private AuthenticationManager authenticationManager;
 
     public UsuarioTokenDTO autenticar(Usuario usuario) {
-        Usuario usuarioAutenticado = usuarioRepository.findByEmail(usuario.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Email do usuário não cadastrado"));
+        Usuario usuarioAutenticado = usuarioRepository.findByEmailIgnoreCase(usuario.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Email do usuário não cadastrado"));
         final UsernamePasswordAuthenticationToken credentials = new UsernamePasswordAuthenticationToken(usuario.getEmail(), usuario.getSenha());
         final Authentication authentication = authenticationManager.authenticate(credentials);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -71,14 +71,19 @@ public class UsuarioService {
         return ResponseEntity.ok(dadosUsuario);
     }
 
-    public ResponseEntity<Usuario> adicionarUsuario(Usuario usuario) {
+    public ResponseEntity<UsuarioInfoDTO> adicionarUsuario(Usuario usuario) {
         if(usuarioRepository.existsByEmail(usuario.getEmail())){
             throw new DataConflictException("E-mail de usuário já cadastrado");
         }
 
         String senhaCriptografada = passwordEncoder.encode(usuario.getSenha());
         usuario.setSenha(senhaCriptografada);
-        return ResponseEntity.ok(usuarioRepository.save(usuario));
+
+        usuarioRepository.save(usuario);
+
+        UsuarioInfoDTO dadosUsuario = new UsuarioInfoDTO(usuario.getNome(), usuario.getEmail(), usuario.getCelular(), usuario.getDataNascimento(), usuario.getNomeSocial(), usuario.getGenero(), usuario.getTelefone(), usuario.getCargo());
+
+        return ResponseEntity.ok(dadosUsuario);
     }
 
     public ResponseEntity<Void> removerUsuario(int id) {
@@ -89,7 +94,7 @@ public class UsuarioService {
         throw new ResourceNotFoundException("Usuário não encontrado");
     }
 
-    public ResponseEntity<Usuario> atualizarUsuario(int id, Usuario novoUsuario) {
+    public ResponseEntity<UsuarioInfoDTO> atualizarUsuario(int id, Usuario novoUsuario) {
         if (usuarioRepository.existsByEmailAndIdIsNot(novoUsuario.getEmail(), id)) {
             throw new DataConflictException("E-mail de usuário já cadastrado");
         }
@@ -99,11 +104,17 @@ public class UsuarioService {
             usuario.setEmail(novoUsuario.getEmail());
             usuario.setCelular(novoUsuario.getCelular());
             usuario.setDataNascimento(novoUsuario.getDataNascimento());
-            usuario.setSenha(novoUsuario.getSenha());
             usuario.setCargo(novoUsuario.getCargo());
             usuario.setDeletado(novoUsuario.isDeletado());
             usuario.setNomeSocial(novoUsuario.getNomeSocial());
-            return ResponseEntity.ok(usuarioRepository.save(usuario));
+            usuario.setGenero(novoUsuario.getGenero());
+            usuario.setTelefone(novoUsuario.getTelefone());
+
+            usuarioRepository.save(usuario);
+
+            UsuarioInfoDTO dadosUsuario = new UsuarioInfoDTO(usuario.getNome(), usuario.getEmail(), usuario.getCelular(), usuario.getDataNascimento(), usuario.getNomeSocial(), usuario.getGenero(), usuario.getTelefone(), usuario.getCargo());
+
+            return ResponseEntity.ok(dadosUsuario);
         }).orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
     }
 }
