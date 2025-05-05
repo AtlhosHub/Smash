@@ -1,6 +1,5 @@
 package com.athlos.smashback.repository;
 
-import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.model.Comprovante;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

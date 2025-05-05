@@ -5,6 +5,8 @@ import com.athlos.smashback.dto.*;
 import com.athlos.smashback.exception.DataConflictException;
 import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.filter.UsuarioFilter;
+import com.athlos.smashback.model.Aluno;
+import com.athlos.smashback.model.ListaEspera;
 import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.repository.UsuarioRepository;
 import com.athlos.smashback.specification.UsuarioSpecification;
@@ -36,7 +38,7 @@ public class UsuarioService {
     private AuthenticationManager authenticationManager;
 
     public UsuarioTokenDTO autenticar(Usuario usuario) {
-        Usuario usuarioAutenticado = usuarioRepository.findByEmail(usuario.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Email do usuário não cadastrado"));
+        Usuario usuarioAutenticado = usuarioRepository.findByEmailIgnoreCase(usuario.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Email do usuário não cadastrado"));
         final UsernamePasswordAuthenticationToken credentials = new UsernamePasswordAuthenticationToken(usuario.getEmail(), usuario.getSenha());
         final Authentication authentication = authenticationManager.authenticate(credentials);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -47,7 +49,7 @@ public class UsuarioService {
     }
 
     public ResponseEntity<List<UsuarioListaDTO>> listarUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
+        List<Usuario> usuarios = usuarioRepository.findAll(Sort.by(Sort.Order.asc("nome").ignoreCase()));
         List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
 
         return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
@@ -55,7 +57,7 @@ public class UsuarioService {
 
     public ResponseEntity<List<UsuarioListaDTO>> usuarioFiltro(UsuarioFilter filtro){
         Specification<Usuario> spec = UsuarioSpecification.filtrarPor(filtro);
-        List<Usuario> usuarios = usuarioRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "nome"));
+        List<Usuario> usuarios = usuarioRepository.findAll(Specification.where(spec), Sort.by(Sort.Order.asc("nome").ignoreCase()));
 
         List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
         return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
@@ -71,26 +73,45 @@ public class UsuarioService {
         return ResponseEntity.ok(dadosUsuario);
     }
 
-    public ResponseEntity<Usuario> adicionarUsuario(Usuario usuario) {
-        if(usuarioRepository.existsByEmail(usuario.getEmail())){
+    public ResponseEntity<UsuarioInfoDTO> adicionarUsuario(Usuario usuario) {
+        if(usuarioRepository.existsByEmailIgnoreCase(usuario.getEmail())){
             throw new DataConflictException("E-mail de usuário já cadastrado");
         }
 
         String senhaCriptografada = passwordEncoder.encode(usuario.getSenha());
         usuario.setSenha(senhaCriptografada);
-        return ResponseEntity.ok(usuarioRepository.save(usuario));
+
+        usuarioRepository.save(usuario);
+
+        UsuarioInfoDTO dadosUsuario = new UsuarioInfoDTO(usuario.getNome(), usuario.getEmail(), usuario.getCelular(), usuario.getDataNascimento(), usuario.getNomeSocial(), usuario.getGenero(), usuario.getTelefone(), usuario.getCargo());
+
+        return ResponseEntity.ok(dadosUsuario);
     }
 
     public ResponseEntity<Void> removerUsuario(int id) {
         if (usuarioRepository.existsById(id)) {
+            Usuario usuario  = usuarioRepository.findById(id).get();
+
+            for (Aluno aluno : usuario.getAlunos()) {
+                aluno.setUsuarioInclusao(null);
+            }
+
+            for (ListaEspera interessado : usuario.getInteressados()) {
+                interessado.setUsuarioInclusao(null);
+            }
+
+            for (Usuario u : usuario.getUsuariosCadastrados()) {
+                u.setUsuarioInclusao(null);
+            }
+
             usuarioRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         }
         throw new ResourceNotFoundException("Usuário não encontrado");
     }
 
-    public ResponseEntity<Usuario> atualizarUsuario(int id, Usuario novoUsuario) {
-        if (usuarioRepository.existsByEmailAndIdIsNot(novoUsuario.getEmail(), id)) {
+    public ResponseEntity<UsuarioInfoDTO> atualizarUsuario(int id, Usuario novoUsuario) {
+        if (usuarioRepository.existsByEmailIgnoreCaseAndIdIsNot(novoUsuario.getEmail(), id)) {
             throw new DataConflictException("E-mail de usuário já cadastrado");
         }
 
@@ -99,11 +120,17 @@ public class UsuarioService {
             usuario.setEmail(novoUsuario.getEmail());
             usuario.setCelular(novoUsuario.getCelular());
             usuario.setDataNascimento(novoUsuario.getDataNascimento());
-            usuario.setSenha(novoUsuario.getSenha());
             usuario.setCargo(novoUsuario.getCargo());
             usuario.setDeletado(novoUsuario.isDeletado());
             usuario.setNomeSocial(novoUsuario.getNomeSocial());
-            return ResponseEntity.ok(usuarioRepository.save(usuario));
+            usuario.setGenero(novoUsuario.getGenero());
+            usuario.setTelefone(novoUsuario.getTelefone());
+
+            usuarioRepository.save(usuario);
+
+            UsuarioInfoDTO dadosUsuario = new UsuarioInfoDTO(usuario.getNome(), usuario.getEmail(), usuario.getCelular(), usuario.getDataNascimento(), usuario.getNomeSocial(), usuario.getGenero(), usuario.getTelefone(), usuario.getCargo());
+
+            return ResponseEntity.ok(dadosUsuario);
         }).orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
     }
 }

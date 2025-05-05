@@ -5,9 +5,7 @@ import com.athlos.smashback.model.HorarioPref;
 import com.athlos.smashback.model.ListaEspera;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.sql.Time;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public class ListaEsperaSpecification {
     public static final String NOME = "nome";
@@ -28,11 +26,11 @@ public class ListaEsperaSpecification {
         return ((root, query, cb) -> nome == null || nome.isEmpty() ? cb.conjunction() : cb.like(cb.lower(root.get(NOME)), "%"+nome.toLowerCase()+"%"));
     }
 
-    private static Specification<ListaEspera> hasDataInteresseGreaterThanEqual(LocalDate dataInteresseFrom){
+    private static Specification<ListaEspera> hasDataInteresseGreaterThanEqual(LocalDateTime dataInteresseFrom){
         return ((root, query, cb) -> dataInteresseFrom == null ? cb.conjunction() : cb.greaterThanOrEqualTo(root.get(DATA_INTERESSE), dataInteresseFrom));
     }
 
-    private static Specification<ListaEspera> hasDataInteresseLessThanEqual(LocalDate dataInteresseTo){
+    private static Specification<ListaEspera> hasDataInteresseLessThanEqual(LocalDateTime dataInteresseTo){
         return ((root, query, cb) -> dataInteresseTo == null ? cb.conjunction() : cb.lessThanOrEqualTo(root.get(DATA_INTERESSE), dataInteresseTo));
     }
 

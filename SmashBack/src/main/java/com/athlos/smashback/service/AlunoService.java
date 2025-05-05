@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,7 +43,7 @@ public class AlunoService {
     }
 
     public ResponseEntity<List<Aluno>> listarAlunos() {
-        List<Aluno> alunos = alunoRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
+        List<Aluno> alunos = alunoRepository.findAll(Sort.by(Sort.Order.asc("nome").ignoreCase()));
         return alunos.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(alunos);
     }
 
@@ -56,17 +57,23 @@ public class AlunoService {
 
     public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(AlunoFilter filtro) {
         List<AlunoComprovanteDTO> lista = alunoComprovanteService.listarAlunosComComprovantes(filtro);
-        if (lista.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
+//        if (lista.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
         return ResponseEntity.ok(lista);
     }
 
 
     @Transactional
     public ResponseEntity<Aluno> cadastrarAluno(Aluno aluno) {
-        if (alunoRepository.existsByEmailOrCpfOrRg(aluno.getEmail(), aluno.getCpf(), aluno.getRg())) {
-            throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
+        if(!aluno.isMenor()){
+            if (alunoRepository.existsByEmailIgnoreCaseOrCpfOrRg(aluno.getEmail(), aluno.getCpf(), aluno.getRg())) {
+                throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
+            }
+        }else{
+            if (alunoRepository.existsByCpfOrRg(aluno.getCpf(),aluno.getRg())){
+                throw new DataConflictException("RG ou CPF já cadastrados");
+            }
         }
 
         Optional<Endereco> enderecoExistente = enderecoRepository.findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCepAndEstado(
@@ -100,13 +107,16 @@ public class AlunoService {
     }
 
     public ResponseEntity<Aluno> atualizarAluno(int id, Aluno novoAluno) {
-        if (alunoRepository.existsByEmailAndIdIsNot(novoAluno.getEmail(), id) ||
+        // Verifica conflitos de dados únicos (e-mail, CPF, RG)
+        if ((!novoAluno.isMenor() && alunoRepository.existsByEmailIgnoreCaseAndIdIsNot(novoAluno.getEmail(), id)) ||
                 alunoRepository.existsByCpfAndIdIsNot(novoAluno.getCpf(), id) ||
                 alunoRepository.existsByRgAndIdIsNot(novoAluno.getRg(), id)) {
             throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
         }
 
+        // Busca o aluno existente e atualiza os dados
         return alunoRepository.findById(id).map(aluno -> {
+            // Atualiza campos básicos
             aluno.setNome(novoAluno.getNome());
             aluno.setEmail(novoAluno.getEmail());
             aluno.setNacionalidade(novoAluno.getNacionalidade());
@@ -124,27 +134,46 @@ public class AlunoService {
             aluno.setGenero(novoAluno.getGenero());
             aluno.setDeficiencia(novoAluno.getDeficiencia());
 
-            Optional<Endereco> enderecoExistente = enderecoRepository.findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCepAndEstado(
-                    novoAluno.getEndereco().getLogradouro(),
-                    novoAluno.getEndereco().getNumLogradouro(),
-                    novoAluno.getEndereco().getBairro(),
-                    novoAluno.getEndereco().getCidade(),
-                    novoAluno.getEndereco().getCep(),
-                    novoAluno.getEndereco().getEstado()
-            );
-            aluno.setEndereco(enderecoExistente.orElseGet(() -> enderecoRepository.save(novoAluno.getEndereco())));
-
-            if (novoAluno.isMenor()) {
-                List<Responsavel> responsaveis = novoAluno.getResponsaveis().stream()
-                        .map(responsavel -> responsavelRepository.findByCpf(responsavel.getCpf())
-                                .orElseGet(() -> responsavelRepository.save(responsavel)))
-                        .collect(Collectors.toList());
-                aluno.setResponsaveis(responsaveis);
+            // Atualiza ou reutiliza endereço existente
+            Endereco novoEndereco = novoAluno.getEndereco();
+            if (novoEndereco != null) {
+                Optional<Endereco> enderecoExistente = enderecoRepository
+                        .findByLogradouroAndNumLogradouroAndBairroAndCidadeAndCepAndEstado(
+                                novoEndereco.getLogradouro(),
+                                novoEndereco.getNumLogradouro(),
+                                novoEndereco.getBairro(),
+                                novoEndereco.getCidade(),
+                                novoEndereco.getCep(),
+                                novoEndereco.getEstado()
+                        );
+                aluno.setEndereco(enderecoExistente.orElseGet(() -> enderecoRepository.save(novoEndereco)));
             }
 
+            // Atualiza responsáveis (caso o aluno seja menor de idade)
+            if (novoAluno.isMenor()) {
+                List<Responsavel> responsaveisAtualizados = Optional.ofNullable(novoAluno.getResponsaveis())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .map(responsavelNovo ->
+                                responsavelRepository.findByCpf(responsavelNovo.getCpf())
+                                        .map(responsavelExistente -> {
+                                            responsavelNovo.setId(responsavelExistente.getId()); // Garante update
+                                            return responsavelRepository.save(responsavelNovo);
+                                        })
+                                        .orElseGet(() -> responsavelRepository.save(responsavelNovo))
+                        )
+                        .collect(Collectors.toList());
+
+                aluno.setResponsaveis(responsaveisAtualizados);
+            } else {
+                aluno.setResponsaveis(Collections.emptyList()); // Ou mantenha os atuais, se preferir
+            }
+
+            // Salva e retorna o aluno atualizado
             return ResponseEntity.ok(alunoRepository.save(aluno));
         }).orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado"));
     }
+
 
     public void gerarMensalidades(Aluno aluno) {
         LocalDate dataBase = aluno.getDataInclusao().toLocalDate().withDayOfMonth(5);

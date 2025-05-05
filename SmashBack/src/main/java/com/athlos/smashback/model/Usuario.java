@@ -36,7 +36,6 @@ public class Usuario {
     @Schema(description = "Senha do usuário", example = "Senha@123")
     private String senha;
 
-    @NotBlank(message = "O celular não pode ficar em branco")
     @Schema(description = "Número de celular do usuário", example = "(11) 91234-5678")
     private String celular;
 
@@ -70,17 +69,17 @@ public class Usuario {
     @Schema(description = "Usuário que incluiu este usuário no sistema")
     private Usuario usuarioInclusao;
 
-    @OneToMany(mappedBy = "usuarioInclusao", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "usuarioInclusao")
     @JsonIgnoreProperties({"usuarioInclusao", "usuariosCadastrados", "alunos", "interessados"})
     @Schema(description = "Lista de usuários cadastrados por este usuário")
     private List<Usuario> usuariosCadastrados = new ArrayList<>();
 
-    @OneToMany(mappedBy = "usuarioInclusao", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "usuarioInclusao")
     @JsonIgnoreProperties("usuarioInclusao")
     @Schema(description = "Lista de alunos associados a este usuário")
     private List<Aluno> alunos = new ArrayList<>();
 
-    @OneToMany(mappedBy = "usuarioInclusao", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "usuarioInclusao")
     @JsonIgnoreProperties("usuarioInclusao")
     @Schema(description = "Lista de interessados associados a este usuário")
     private List<ListaEspera> interessados = new ArrayList<>();

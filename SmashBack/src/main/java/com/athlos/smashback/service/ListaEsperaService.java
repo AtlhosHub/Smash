@@ -22,7 +22,7 @@ public class ListaEsperaService {
     }
 
     public ResponseEntity<List<ListaEsperaDTO>> listaEspera() {
-        List<ListaEspera> listaEspera = listaEsperaRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
+        List<ListaEspera> listaEspera = listaEsperaRepository.findAll(Sort.by(Sort.Direction.ASC, "dataInteresse"));
 
         List<ListaEsperaDTO> interessados = listaEspera.stream().map(interessado -> new ListaEsperaDTO(interessado.getId(), interessado.getNome(), interessado.getDataInteresse(), interessado.getHorarioPref().getHorarioAula())).toList();
         return listaEspera.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(interessados);
@@ -30,7 +30,7 @@ public class ListaEsperaService {
 
     public ResponseEntity<List<ListaEsperaDTO>> listaEsperaFiltro(ListaEsperaFilter filtro){
         Specification<ListaEspera> spec = ListaEsperaSpecification.filtrarPor(filtro);
-        List<ListaEspera> listaEspera = listaEsperaRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "nome"));
+        List<ListaEspera> listaEspera = listaEsperaRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "dataInteresse"));
 
         List<ListaEsperaDTO> interessados = listaEspera.stream()
                 .map(interessado ->
@@ -54,7 +54,7 @@ public class ListaEsperaService {
     }
 
     public ResponseEntity<ListaEspera> adicionarInteressado(ListaEspera listaEspera) {
-        if(listaEsperaRepository.existsByNomeAndEmail(listaEspera.getNome(), listaEspera.getEmail())){
+        if(listaEsperaRepository.existsByNomeAndEmailIgnoreCase(listaEspera.getNome(), listaEspera.getEmail())){
             throw new DataConflictException("Nome e e-mail de interessado já cadastrados");
         }
         return ResponseEntity.ok(listaEsperaRepository.save(listaEspera));
@@ -69,7 +69,7 @@ public class ListaEsperaService {
     }
 
     public ResponseEntity<ListaEspera> atualizarInteressado(int id, ListaEspera novoInteressado) {
-        if(listaEsperaRepository.existsByNomeAndEmailAndIdIsNot(novoInteressado.getNome(), novoInteressado.getEmail(), id)){
+        if(listaEsperaRepository.existsByNomeAndEmailIgnoreCaseAndIdIsNot(novoInteressado.getNome(), novoInteressado.getEmail(), id)){
             throw new DataConflictException("Nome e e-mail de interessado já cadastrados");
         }
 

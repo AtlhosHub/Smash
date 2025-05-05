@@ -81,7 +81,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "409", description = "E-mail já cadastrados", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
-    public ResponseEntity<Usuario> adicionarUsuario(
+    public ResponseEntity<UsuarioInfoDTO> adicionarUsuario(
             @Valid @RequestBody @Parameter(description = "Dados do usuário a ser adicionado") Usuario usuario) {
 
         return usuarioService.adicionarUsuario(usuario);
@@ -114,7 +114,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "409", description = "E-mail já cadastrados", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
-    public ResponseEntity<Usuario> atualizarUsuario(
+    public ResponseEntity<UsuarioInfoDTO> atualizarUsuario(
             @Parameter(description = "ID do usuário a ser atualizado", example = "1") @PathVariable int id,
             @Valid @RequestBody @Parameter(description = "Novos dados do usuário") Usuario novoUsuario) {
         return usuarioService.atualizarUsuario(id, novoUsuario);
