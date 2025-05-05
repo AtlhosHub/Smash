@@ -57,9 +57,9 @@ public class AlunoService {
 
     public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(AlunoFilter filtro) {
         List<AlunoComprovanteDTO> lista = alunoComprovanteService.listarAlunosComComprovantes(filtro);
-        if (lista.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
+//        if (lista.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
         return ResponseEntity.ok(lista);
     }
 

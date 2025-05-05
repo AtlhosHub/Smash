@@ -59,7 +59,7 @@ public class AlunoController {
     @Operation(summary = "Listar alunos com comprovantes", description = "Retorna uma lista de alunos que possuem comprovantes com base no filtro fornecido.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de alunos retornada com sucesso"),
-            @ApiResponse(responseCode = "204", description = "Lista de alunos vazia", content = @Content()),
+//            @ApiResponse(responseCode = "204", description = "Lista de alunos vazia", content = @Content()),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
