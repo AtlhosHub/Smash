@@ -1,5 +1,7 @@
 package com.athlos.smashback.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,6 +24,7 @@ public class Mensalidade {
     @ManyToOne
     @JoinColumn(name = "aluno_id", nullable = false)
     @Schema(description = "Aluno associado à mensalidade")
+    @JsonIgnore
     private Aluno aluno;
 
     @Schema(description = "Data de vencimento da mensalidade", example = "2025-05-01")
@@ -45,5 +48,6 @@ public class Mensalidade {
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "comprovante_id")
     @Schema(description = "Comprovante associado à mensalidade")
+    @JsonIgnoreProperties("mensalidade")
     private Comprovante comprovante;
 }
