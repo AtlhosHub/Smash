@@ -29,4 +29,10 @@ public class AlunoComprovanteDTO {
 
     @Schema(description = "Status atual da mensalidade (PENDENTE, ATRASADO ou PAGO)", example = "PAGO")
     private String status;
+
+    @Schema (description = "Forma de pagamento utilizada", example = "Pix")
+    private String formaPagamento;
+
+    @Schema(description = "Valor da mensalidade", example = "150.00")
+    private Double valor;
 }
