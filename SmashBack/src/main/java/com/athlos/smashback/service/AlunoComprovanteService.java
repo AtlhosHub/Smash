@@ -86,7 +86,9 @@ public class AlunoComprovanteService {
                         aluno.getNome(),
                         aluno.isAtivo(),
                         dataPagamento,
-                        status
+                        status,
+                        m.getFormaPagamento(),
+                        m.getValor()
                 ));
             }
         }

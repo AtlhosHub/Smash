@@ -121,7 +121,7 @@ public class Aluno {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    @JsonIgnoreProperties("aluno")
+    @JsonIgnoreProperties("comprovante")
     @Schema(description = "Mensalidades associadas ao aluno")
     private List<Mensalidade> mensalidades = new ArrayList<>();
 }
