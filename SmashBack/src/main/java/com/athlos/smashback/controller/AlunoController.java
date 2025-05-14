@@ -116,7 +116,8 @@ public class AlunoController {
     @GetMapping("/{id}/historicoMensalidade")
     @Operation(summary = "Listar mensalidades até o mês atual", description = "Retorna as mensalidades de um aluno até o mês atual (inclusive).")
     public ResponseEntity<List<AlunoComprovanteDTO>> listarMensalidadesAteAgora(
-            @PathVariable int id) {
+            @Parameter(description = "ID do aluno a ser procurado", example = "1") @PathVariable int id
+            ) {
         List<AlunoComprovanteDTO> mensalidades =
                 alunoComprovanteService.buscarMensalidadesAteMesAtual(id);
         return ResponseEntity.ok(mensalidades);
