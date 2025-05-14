@@ -91,7 +91,7 @@ public class AlunoComprovanteService {
                         dataPagamento,
                         status,
                         m.getFormaPagamento(),
-                        m.getValor()
+                        m.getStatus() == Status.PAGO ?  m.getValor() : null
                 ));
             }
         }
