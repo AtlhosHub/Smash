@@ -1,6 +1,7 @@
 package com.athlos.smashback.service;
 
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
+import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.model.Mensalidade;
@@ -11,10 +12,13 @@ import com.athlos.smashback.specification.AlunoSpecification;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AlunoComprovanteService {
@@ -54,7 +58,6 @@ public class AlunoComprovanteService {
                 : null;
 
 
-        // 2. Para cada aluno, busca suas mensalidades com qualquer status
         for (Aluno aluno : alunos) {
             List<Mensalidade> mensalidades = mensalidadeRepository
                     .findByAlunoAndStatusInOrderByDataVencimentoAsc(aluno, TODOS_STATUS);
@@ -93,5 +96,30 @@ public class AlunoComprovanteService {
             }
         }
         return resultado;
+    }
+
+    @Transactional(readOnly = true)
+    public List<AlunoComprovanteDTO> buscarMensalidadesAteMesAtual(int alunoId) {
+        Aluno aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado com id " + alunoId));
+
+        LocalDate limite = YearMonth.now().atEndOfMonth();
+
+        List<Mensalidade> mensalidades = mensalidadeRepository
+                .findByAluno(aluno);
+
+        return mensalidades.stream()
+                .filter(m -> !m.getDataVencimento().isAfter(limite))
+                .map(m -> new AlunoComprovanteDTO(
+                        m.getId(),
+                        aluno.getId(),
+                        aluno.getNome(),
+                        aluno.isAtivo(),
+                        m.getDataPagamento(),
+                        m.getStatus().name(),
+                        m.getFormaPagamento(),
+                        m.getValor()
+                ))
+                .collect(Collectors.toList());
     }
 }
