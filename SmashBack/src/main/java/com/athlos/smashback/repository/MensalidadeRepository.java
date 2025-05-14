@@ -25,4 +25,7 @@ public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> 
             @Param("aluno") Aluno aluno,
             @Param("status") List<Status> status
     );
+
+    List<Mensalidade> findByAluno(Aluno aluno);
+
 }

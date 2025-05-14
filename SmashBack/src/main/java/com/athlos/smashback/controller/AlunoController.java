@@ -112,4 +112,14 @@ public class AlunoController {
             @Valid @RequestBody Aluno novoAluno) {
         return alunoService.atualizarAluno(id, novoAluno);
     }
+
+    @GetMapping("/{id}/historicoMensalidade")
+    @Operation(summary = "Listar mensalidades até o mês atual", description = "Retorna as mensalidades de um aluno até o mês atual (inclusive).")
+    public ResponseEntity<List<AlunoComprovanteDTO>> listarMensalidadesAteAgora(
+            @Parameter(description = "ID do aluno a ser procurado", example = "1") @PathVariable int id
+            ) {
+        List<AlunoComprovanteDTO> mensalidades =
+                alunoComprovanteService.buscarMensalidadesAteMesAtual(id);
+        return ResponseEntity.ok(mensalidades);
+    }
 }
