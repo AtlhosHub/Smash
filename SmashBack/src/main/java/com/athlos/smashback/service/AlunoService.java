@@ -107,16 +107,13 @@ public class AlunoService {
     }
 
     public ResponseEntity<Aluno> atualizarAluno(int id, Aluno novoAluno) {
-        // Verifica conflitos de dados únicos (e-mail, CPF, RG)
         if ((!novoAluno.isMenor() && alunoRepository.existsByEmailIgnoreCaseAndIdIsNot(novoAluno.getEmail(), id)) ||
                 alunoRepository.existsByCpfAndIdIsNot(novoAluno.getCpf(), id) ||
                 alunoRepository.existsByRgAndIdIsNot(novoAluno.getRg(), id)) {
             throw new DataConflictException("E-mail, RG ou CPF já cadastrados");
         }
 
-        // Busca o aluno existente e atualiza os dados
         return alunoRepository.findById(id).map(aluno -> {
-            // Atualiza campos básicos
             aluno.setNome(novoAluno.getNome());
             aluno.setEmail(novoAluno.getEmail());
             aluno.setNacionalidade(novoAluno.getNacionalidade());
