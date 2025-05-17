@@ -1,6 +1,7 @@
 package com.athlos.smashback.controller;
 
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
+import com.athlos.smashback.dto.HistoricoMensalidadeFiltroDTO;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.service.AlunoComprovanteService;
@@ -115,21 +116,20 @@ public class AlunoController {
         return alunoService.atualizarAluno(id, novoAluno);
     }
 
-    @GetMapping("/{id}/historicoMensalidade")
-    @Operation(summary = "Listar mensalidades até o mês atual",
-            description = "Retorna mensalidades até o mês atual (inclusive), inclui futuras já pagas, " +
-                    "ordenado decrescente por data de envio. Permite filtrar por intervalo de data de envio.")
+    @PostMapping("/{id}/historicoMensalidade")
+    @Operation(
+            summary = "Listar mensalidades até o mês atual",
+            description = "Recebe um filtro de vencimento (dateFrom/dateTo) e retorna histórico de mensalidades do aluno até o mês atual.")
     public ResponseEntity<List<AlunoComprovanteDTO>> listarHistorico(
-            @PathVariable int id,
-            @RequestParam(required = false)
-            @DateTimeFormat(pattern = "dd/MM/yyyy")
-            LocalDate dateFrom,
-            @RequestParam(required = false)
-            @DateTimeFormat(pattern = "dd/MM/yyyy")
-            LocalDate dateTo) {
+            @Parameter(description = "ID do aluno a ser procurado", example = "1") @PathVariable int id,
+            @RequestBody(required = false) HistoricoMensalidadeFiltroDTO filtro) {
+
+        LocalDate from = filtro != null ? filtro.getDateFrom() : null;
+        LocalDate to   = filtro != null ? filtro.getDateTo()   : null;
 
         List<AlunoComprovanteDTO> lista =
-                alunoComprovanteService.buscarMensalidadesAteMesAtual(id, dateFrom, dateTo);
+                alunoComprovanteService.buscarMensalidadesAteMesAtual(id, from, to);
+
         return ResponseEntity.ok(lista);
     }
 }
