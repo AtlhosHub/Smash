@@ -42,7 +42,6 @@ public class AlunoComprovanteService {
      * Aplica filtros de AlunoFilter sobre status e período de data de envio.
      */
     public List<AlunoComprovanteDTO> listarAlunosComComprovantes(AlunoFilter filtro) {
-        // 1. Filtra alunos
         Specification<Aluno> spec = AlunoSpecification.filtrarPor(filtro);
         List<Aluno> alunos = alunoRepository.findAll(Specification.where(spec), Sort.by(Sort.Order.asc("nome").ignoreCase()));
         if (alunos.isEmpty()) return Collections.emptyList();
@@ -71,7 +70,6 @@ public class AlunoComprovanteService {
                 String      status         = m.getStatus().name();
 
 
-                // 3. Filtra por status, se informado
                 if (filtro.getStatus() != null && !status.equalsIgnoreCase(filtro.getStatus())) {
                     continue;
                 }
@@ -99,17 +97,30 @@ public class AlunoComprovanteService {
     }
 
     @Transactional(readOnly = true)
-    public List<AlunoComprovanteDTO> buscarMensalidadesAteMesAtual(int alunoId) {
+    public List<AlunoComprovanteDTO> buscarMensalidadesAteMesAtual(
+            int alunoId,
+            LocalDate dateFrom,
+            LocalDate dateTo) {
+
         Aluno aluno = alunoRepository.findById(alunoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado com id " + alunoId));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Aluno não encontrado com id " + alunoId));
 
-        LocalDate limite = YearMonth.now().atEndOfMonth();
+        LocalDate fimMesAtual = YearMonth.now().atEndOfMonth();
 
-        List<Mensalidade> mensalidades = mensalidadeRepository
-                .findByAluno(aluno);
-
-        return mensalidades.stream()
-                .filter(m -> !m.getDataVencimento().isAfter(limite))
+        return mensalidadeRepository.findByAluno(aluno).stream()
+                .filter(m ->
+                        !m.getDataVencimento().isAfter(fimMesAtual) ||
+                                m.getStatus() == Status.PAGO
+                )
+                .filter(m -> {
+                    if (dateFrom != null && dateTo != null) {
+                        LocalDate venc = m.getDataVencimento();
+                        return !venc.isBefore(dateFrom) && !venc.isAfter(dateTo);
+                    }
+                    return true;
+                })
+                .sorted(Comparator.comparing(Mensalidade::getDataVencimento).reversed())
                 .map(m -> new AlunoComprovanteDTO(
                         m.getId(),
                         aluno.getId(),

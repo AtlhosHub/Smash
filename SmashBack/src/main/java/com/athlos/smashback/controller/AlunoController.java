@@ -14,9 +14,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -114,12 +116,20 @@ public class AlunoController {
     }
 
     @GetMapping("/{id}/historicoMensalidade")
-    @Operation(summary = "Listar mensalidades até o mês atual", description = "Retorna as mensalidades de um aluno até o mês atual (inclusive).")
-    public ResponseEntity<List<AlunoComprovanteDTO>> listarMensalidadesAteAgora(
-            @Parameter(description = "ID do aluno a ser procurado", example = "1") @PathVariable int id
-            ) {
-        List<AlunoComprovanteDTO> mensalidades =
-                alunoComprovanteService.buscarMensalidadesAteMesAtual(id);
-        return ResponseEntity.ok(mensalidades);
+    @Operation(summary = "Listar mensalidades até o mês atual",
+            description = "Retorna mensalidades até o mês atual (inclusive), inclui futuras já pagas, " +
+                    "ordenado decrescente por data de envio. Permite filtrar por intervalo de data de envio.")
+    public ResponseEntity<List<AlunoComprovanteDTO>> listarHistorico(
+            @PathVariable int id,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "dd/MM/yyyy")
+            LocalDate dateFrom,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "dd/MM/yyyy")
+            LocalDate dateTo) {
+
+        List<AlunoComprovanteDTO> lista =
+                alunoComprovanteService.buscarMensalidadesAteMesAtual(id, dateFrom, dateTo);
+        return ResponseEntity.ok(lista);
     }
 }
