@@ -35,4 +35,7 @@ public class AlunoComprovanteDTO {
 
     @Schema(description = "Valor da mensalidade", example = "150.00")
     private Double valor;
+
+    @Schema(description = "Indica se a mensalidade foi paga com desconto", example = "true")
+    private Boolean desconto;
 }
