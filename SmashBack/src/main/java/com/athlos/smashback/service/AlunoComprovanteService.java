@@ -91,7 +91,8 @@ public class AlunoComprovanteService {
                         dataPagamento,
                         status,
                         m.getFormaPagamento(),
-                        m.getStatus() == Status.PAGO ?  m.getValor() : null
+                        m.getStatus() == Status.PAGO ?  m.getValor() : null,
+                        m.getDataPagamento() != null && m.getDataPagamento().toLocalDate().isBefore(m.getDataVencimento())
                 ));
             }
         }
@@ -118,7 +119,8 @@ public class AlunoComprovanteService {
                         m.getDataPagamento(),
                         m.getStatus().name(),
                         m.getFormaPagamento(),
-                        m.getValor()
+                        m.getValor(),
+                        m.getDataPagamento() != null && m.getDataPagamento().toLocalDate().isBefore(m.getDataVencimento())
                 ))
                 .collect(Collectors.toList());
     }
