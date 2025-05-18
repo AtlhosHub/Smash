@@ -3,6 +3,7 @@ package com.athlos.smashback.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -26,6 +27,9 @@ public class AlunoComprovanteDTO {
 
     @Schema(description = "Data e hora em que a mensalidade foi paga (data de envio do comprovante)", example = "2025-04-21T10:15:30")
     private LocalDateTime dataEnvio;
+
+    @Schema(description = "Data de vencimento da parcela da mensalidade")
+    private LocalDate dataVencimento;
 
     @Schema(description = "Status atual da mensalidade (PENDENTE, ATRASADO ou PAGO)", example = "PAGO")
     private String status;
