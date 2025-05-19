@@ -14,7 +14,7 @@ import lombok.Setter;
 
 public class PagamentoManualDTO {
     @Schema(description = "Valor efetivamente pago", example = "412.54")
-    private ValorMensalidade valorPago;
+    private Double valorPago;
 
     @Schema(description = "Forma de pagamento (ex: Dinheiro, Cartão)", example = "Dinheiro")
     private String formaPagamento;

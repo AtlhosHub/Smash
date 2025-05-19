@@ -190,7 +190,14 @@ public class AlunoService {
     }
 
     public ResponseEntity<List<AlunoAniversarioDTO>> listarAniversarios() {
-        List<Aluno> alunos = alunoRepository.findAniversariantes();
+        int mesAtual = LocalDate.now().getMonthValue();
+        List<Aluno> alunos = alunoRepository.findAniversariantes().stream()
+                .filter(a -> {
+                    int mesNascimento = a.getDataNascimento().getMonthValue();
+                    return mesNascimento >= mesAtual;
+                })
+                .collect(Collectors.toList());
+
         List<AlunoAniversarioDTO> aniversariantes = alunos.stream()
                 .map(aluno -> new AlunoAniversarioDTO(aluno.getNome(), aluno.getDataNascimento()))
                 .collect(Collectors.toList());

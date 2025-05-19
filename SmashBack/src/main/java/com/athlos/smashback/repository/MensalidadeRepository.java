@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -27,20 +28,21 @@ public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> 
             @Param("status") List<Status> status
     );
 
-    @Query(
-        value = "SELECT COUNT(m.id) qtd_descontos FROM Mensalidade m WHERE m.status = 'PAGO' AND MONTH(m.dataPagamento) = MONTH(NOW()) AND YEAR(m.dataPagamento) = YEAR(NOW()) AND DATEDIFF('DAY', m.dataPagamento, m.dataVencimento) >= 12"
-        , nativeQuery = true
-    )
-    int countMensalidadesDesconto();
+    @Query("SELECT COUNT(m) FROM Mensalidade m JOIN m.valor v WHERE m.status = 'PAGO' AND m.dataPagamento BETWEEN :inicioMes AND :fimMes AND v.desconto = true")
+    int countMensalidadesDesconto(@Param ("inicioMes") LocalDateTime inicioMes, @Param("fimMes") LocalDateTime fimMes);
 
-    @Query(value = """
-      SELECT MONTH(m.dataVencimento) AS mes,
-      SUM(CASE WHEN m.status = 'ATRASADO' THEN 1 ELSE 0 END) AS atrasados,
-      SUM(CASE WHEN m.status = 'PAGO' AND DATEDIFF('DAY',m.dataVencimento, m.dataPagamento) < 12 THEN 1 ELSE 0 END) AS pagos,
-      SUM(CASE WHEN m.status = 'PAGO' AND DATEDIFF('DAY', m.dataVencimento, m.dataPagamento) >= 12 THEN 1 ELSE 0 END) AS pagos_com_desconto
-      FROM Mensalidade m
-      GROUP BY MONTH(m.dataVencimento)
-      ORDER BY MONTH(m.dataVencimento);
-    """, nativeQuery = true)
+    @Query("""
+        SELECT new com.athlos.smashback.dto.GraficoDTO(
+            MONTH(m.dataVencimento),
+            SUM(CASE WHEN m.status = 'ATRASADO' THEN 1 ELSE 0 END),
+            SUM(CASE WHEN m.status = 'PAGO' AND v.desconto = false THEN 1 ELSE 0 END),
+            SUM(CASE WHEN m.status = 'PAGO' AND v.desconto = true THEN 1 ELSE 0 END)
+        )
+        FROM Mensalidade m
+        JOIN m.valor v
+        WHERE m.status IN ('PAGO', 'ATRASADO') AND YEAR(m.dataVencimento) = YEAR(CURRENT_DATE)
+        GROUP BY MONTH(m.dataVencimento)
+        ORDER BY MONTH(m.dataVencimento)
+    """)
     List<GraficoDTO> graficoMensalidade();
 }

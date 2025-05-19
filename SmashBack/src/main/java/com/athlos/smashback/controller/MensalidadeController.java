@@ -48,13 +48,11 @@ public class MensalidadeController {
             @PathVariable Long id,
             @RequestBody @Valid PagamentoManualDTO dto) {
 
-
-        // ...existing code...
         ValorMensalidade valor = valorMensalidadeRepository
-            .findByValorAndManual(dto.getValorPago().getValor(), true)
+            .findByValorAndManual(dto.getValorPago(), true)
             .orElseGet(() -> {
                 ValorMensalidade novo = new ValorMensalidade();
-                novo.setValor(dto.getValorPago().getValor());
+                novo.setValor(dto.getValorPago());
                 novo.setManual(true);
                 return valorMensalidadeRepository.save(novo);
             });
