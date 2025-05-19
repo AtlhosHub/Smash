@@ -1,6 +1,7 @@
 package com.athlos.smashback.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -44,6 +45,7 @@ public class Comprovante {
     private Aluno aluno;
 
     @OneToMany(mappedBy = "comprovante")
+    @JsonIgnoreProperties({"mensalidades"})
     @Schema(description = "Lista de mensalidades associadas ao comprovante")
     private List<Mensalidade> mensalidades;
 

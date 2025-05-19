@@ -25,7 +25,7 @@ public class ListaEsperaService {
         List<ListaEspera> listaEspera = listaEsperaRepository.findAll(Sort.by(Sort.Direction.ASC, "dataInteresse"));
 
         List<ListaEsperaDTO> interessados = listaEspera.stream().map(interessado -> new ListaEsperaDTO(interessado.getId(), interessado.getNome(), interessado.getDataInteresse(), interessado.getHorarioPref().getHorarioAula())).toList();
-        return listaEspera.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(interessados);
+        return ResponseEntity.ok(listaEspera.isEmpty() ? List.of() : interessados);
     }
 
     public ResponseEntity<List<ListaEsperaDTO>> listaEsperaFiltro(ListaEsperaFilter filtro){
@@ -33,7 +33,7 @@ public class ListaEsperaService {
         List<ListaEspera> listaEspera = listaEsperaRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "dataInteresse"));
 
         List<ListaEsperaDTO> interessados = listaEspera.stream().map(interessado -> new ListaEsperaDTO(interessado.getId(), interessado.getNome(), interessado.getDataInteresse(), interessado.getHorarioPref().getHorarioAula())).toList();
-        return listaEspera.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(interessados);
+        return ResponseEntity.ok(listaEspera.isEmpty() ? List.of() : interessados);
     }
 
     public ResponseEntity<ListaEspera> buscarInteressado(int id) {

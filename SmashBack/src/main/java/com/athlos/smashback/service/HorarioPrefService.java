@@ -18,7 +18,15 @@ public class HorarioPrefService {
 
     public ResponseEntity<List<HorarioPref>> listarHorarios() {
         List<HorarioPref> horarios = horarioPrefRepository.findAll();
-        return horarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(horarios);
+        return ResponseEntity.ok(horarios.isEmpty() ? List.of() : horarios);
+    }
+
+    public ResponseEntity<HorarioPref> buscarHorario(int id) {
+        if(!horarioPrefRepository.existsById(id)){
+            throw new ResourceNotFoundException("Horário não encontrado");
+        }
+
+        return ResponseEntity.ok(horarioPrefRepository.findById(id).get());
     }
 
     public ResponseEntity<HorarioPref> cadastrarHorario(HorarioPref horarioPref) {

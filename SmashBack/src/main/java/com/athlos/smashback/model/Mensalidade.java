@@ -34,9 +34,10 @@ public class Mensalidade {
     @Schema(description = "Status da mensalidade", example = "PAGO")
     private Status status;
 
-    @Column(nullable = true)
-    @Schema(description = "Valor da mensalidade", example = "150.00")
-    private Double valor;
+    @ManyToOne
+    @JoinColumn(name = "valor_mensalidade_id")
+    @Schema(description = "Valor da mensalidade")
+    private ValorMensalidade valor;
 
     @Column(name = "forma_pagamento", nullable = true)
     @Schema(description = "Forma de pagamento usada", example = "Pix")

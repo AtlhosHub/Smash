@@ -1,5 +1,6 @@
 package com.athlos.smashback.controller;
 
+import com.athlos.smashback.dto.AlunoAniversarioDTO;
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
@@ -35,7 +36,6 @@ public class AlunoController {
     @Operation(summary = "Listar todos os alunos", description = "Retorna uma lista de todos os alunos cadastrados no sistema.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de alunos retornada com sucesso"),
-            @ApiResponse(responseCode = "204", description = "Lista de alunos vazia", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
     public ResponseEntity<List<Aluno>> listarAlunos() {
@@ -59,7 +59,6 @@ public class AlunoController {
     @Operation(summary = "Listar alunos com comprovantes", description = "Retorna uma lista de alunos que possuem comprovantes com base no filtro fornecido.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de alunos retornada com sucesso"),
-//            @ApiResponse(responseCode = "204", description = "Lista de alunos vazia", content = @Content()),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
@@ -111,5 +110,27 @@ public class AlunoController {
             @Parameter(description = "ID do aluno a ser atualizado", example = "1") @PathVariable int id,
             @Valid @RequestBody Aluno novoAluno) {
         return alunoService.atualizarAluno(id, novoAluno);
+    }
+
+    @GetMapping("/aniversariantes")
+    @Operation(summary = "Listar aniversariantes", description = "Retorna uma lista dos alunos aniversariantes do mês atual e meses futuros.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Quantidade de alunos ativos retornada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
+    })
+    public ResponseEntity<List<AlunoAniversarioDTO>> listarAniversarios() {
+        return alunoService.listarAniversarios();
+    }
+
+    @GetMapping("/ativos")
+    @Operation(summary = "Quantidade de alunos ativos", description = "Retorna a quantidade de alunos ativos.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Quantidade de alunos ativos retornada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
+    })
+    public ResponseEntity<Integer> qtdAlunosAtivos() {
+        return alunoService.qtdAlunosAtivos();
     }
 }
