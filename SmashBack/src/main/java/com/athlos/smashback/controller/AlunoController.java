@@ -2,6 +2,7 @@ package com.athlos.smashback.controller;
 
 import com.athlos.smashback.dto.AlunoAniversarioDTO;
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
+import com.athlos.smashback.dto.HistoricoMensalidadeFiltroDTO;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.service.AlunoComprovanteService;
@@ -15,9 +16,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -132,5 +135,22 @@ public class AlunoController {
     })
     public ResponseEntity<Integer> qtdAlunosAtivos() {
         return alunoService.qtdAlunosAtivos();
+    }
+
+    @PostMapping("/{id}/historicoMensalidade")
+    @Operation(
+            summary = "Listar mensalidades até o mês atual",
+            description = "Recebe um filtro de vencimento (dateFrom/dateTo) e retorna histórico de mensalidades do aluno até o mês atual.")
+    public ResponseEntity<List<AlunoComprovanteDTO>> listarHistorico(
+            @Parameter(description = "ID do aluno a ser procurado", example = "1") @PathVariable int id,
+            @RequestBody(required = false) HistoricoMensalidadeFiltroDTO filtro) {
+
+        LocalDate from = filtro != null ? filtro.getDateFrom() : null;
+        LocalDate to   = filtro != null ? filtro.getDateTo()   : null;
+
+        List<AlunoComprovanteDTO> lista =
+                alunoComprovanteService.buscarMensalidadesAteMesAtual(id, from, to);
+
+        return ResponseEntity.ok(lista);
     }
 }

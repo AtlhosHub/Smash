@@ -36,6 +36,7 @@ public class ListaEsperaService {
         return ResponseEntity.ok(listaEspera.isEmpty() ? List.of() : interessados);
     }
 
+
     public ResponseEntity<ListaEspera> buscarInteressado(int id) {
         if(!listaEsperaRepository.existsById(id)){
             throw new ResourceNotFoundException("Interessado não encontrado");

@@ -1,6 +1,7 @@
 package com.athlos.smashback.service;
 
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
+import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.model.Mensalidade;
@@ -11,10 +12,13 @@ import com.athlos.smashback.specification.AlunoSpecification;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AlunoComprovanteService {
@@ -38,7 +42,6 @@ public class AlunoComprovanteService {
      * Aplica filtros de AlunoFilter sobre status e período de data de envio.
      */
     public List<AlunoComprovanteDTO> listarAlunosComComprovantes(AlunoFilter filtro) {
-        // 1. Filtra alunos
         Specification<Aluno> spec = AlunoSpecification.filtrarPor(filtro);
         List<Aluno> alunos = alunoRepository.findAll(Specification.where(spec), Sort.by(Sort.Order.asc("nome").ignoreCase()));
         if (alunos.isEmpty()) return Collections.emptyList();
@@ -54,7 +57,6 @@ public class AlunoComprovanteService {
                 : null;
 
 
-        // 2. Para cada aluno, busca suas mensalidades com qualquer status
         for (Aluno aluno : alunos) {
             List<Mensalidade> mensalidades = mensalidadeRepository
                     .findByAlunoAndStatusInOrderByDataVencimentoAsc(aluno, TODOS_STATUS);
@@ -68,7 +70,6 @@ public class AlunoComprovanteService {
                 String      status         = m.getStatus().name();
 
 
-                // 3. Filtra por status, se informado
                 if (filtro.getStatus() != null && !status.equalsIgnoreCase(filtro.getStatus())) {
                     continue;
                 }
@@ -86,10 +87,54 @@ public class AlunoComprovanteService {
                         aluno.getNome(),
                         aluno.isAtivo(),
                         dataPagamento,
-                        status
+                        m.getDataVencimento(),
+                        status,
+                        m.getFormaPagamento(),
+                        m.getStatus() == Status.PAGO ?  m.getValor() : null,
+                        m.getDataPagamento() != null && m.getDataPagamento().toLocalDate().isBefore(m.getDataVencimento())
                 ));
             }
         }
         return resultado;
+    }
+
+    @Transactional(readOnly = true)
+    public List<AlunoComprovanteDTO> buscarMensalidadesAteMesAtual(
+            int alunoId,
+            LocalDate dateFrom,
+            LocalDate dateTo) {
+
+        Aluno aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Aluno não encontrado com id " + alunoId));
+
+        LocalDate fimMesAtual = YearMonth.now().atEndOfMonth();
+
+        return mensalidadeRepository.findByAluno(aluno).stream()
+                .filter(m ->
+                        !m.getDataVencimento().isAfter(fimMesAtual) ||
+                                m.getStatus() == Status.PAGO
+                )
+                .filter(m -> {
+                    if (dateFrom != null && dateTo != null) {
+                        LocalDate venc = m.getDataVencimento();
+                        return !venc.isBefore(dateFrom) && !venc.isAfter(dateTo);
+                    }
+                    return true;
+                })
+                .sorted(Comparator.comparing(Mensalidade::getDataVencimento).reversed())
+                .map(m -> new AlunoComprovanteDTO(
+                        m.getId(),
+                        aluno.getId(),
+                        aluno.getNome(),
+                        aluno.isAtivo(),
+                        m.getDataPagamento(),
+                        m.getDataVencimento(),
+                        m.getStatus().name(),
+                        m.getFormaPagamento(),
+                        m.getValor(),
+                        m.getDataPagamento() != null && m.getDataPagamento().toLocalDate().isBefore(m.getDataVencimento())
+                ))
+                .collect(Collectors.toList());
     }
 }

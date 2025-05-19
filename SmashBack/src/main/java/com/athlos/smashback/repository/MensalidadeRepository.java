@@ -45,4 +45,7 @@ public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> 
         ORDER BY MONTH(m.dataVencimento)
     """)
     List<GraficoDTO> graficoMensalidade();
+
+    List<Mensalidade> findByAluno(Aluno aluno);
+
 }

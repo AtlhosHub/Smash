@@ -50,27 +50,23 @@ public class EmailReaderService {
     @Autowired
     private ValorMensalidadeRepository valorMensalidadeRepository;
 
+
     @Scheduled(fixedDelay = 60000)
     @Transactional
     public void verificarEmails() {
-        System.out.println("\uD83D\uDD04 Verificando emails às " + java.time.LocalDateTime.now());
+        System.out.println("🔄 Verificando emails às " + java.time.LocalDateTime.now());
         try {
             Store store = conectarEmail();
             Folder inbox = store.getFolder("INBOX");
             inbox.open(Folder.READ_WRITE);
 
-            Message[] messages = inbox.search(new AndTerm(
-                    new FlagTerm(new Flags(Flags.Flag.SEEN), false),
-                    new OrTerm(
-                            new SubjectTerm("Pagamento"),
-                            new SubjectTerm("Boleto")
-                    )
-            ));
+            Message[] messages = inbox.search(
+                    new FlagTerm(new Flags(Flags.Flag.SEEN), false)
+            );
 
             for (Message message : messages) {
                 Address[] from = message.getFrom();
                 if (from == null || from.length == 0) continue;
-                String remetente = from[0].toString();
 
                 String remetenteEmail = InternetAddress.toString(from)
                         .replaceAll(".*<([^>]+)>.*", "$1")
@@ -80,11 +76,11 @@ public class EmailReaderService {
 
                 if (alunoOpt.isEmpty()) {
                     System.out.println("⚠️ Email não vinculado a nenhum aluno: " + remetenteEmail);
+                    message.setFlag(Flags.Flag.SEEN, true);
                     continue;
                 }
 
                 Aluno aluno = alunoOpt.get();
-
                 String nomeAluno = (aluno.getNomeSocial() != null && !aluno.getNomeSocial().isBlank())
                         ? aluno.getNomeSocial()
                         : aluno.getNome();
@@ -98,18 +94,22 @@ public class EmailReaderService {
                             File tempFile = salvarAnexoTemporariamente(part);
 
                             String jsonGemini = enviarImagemParaGemini(tempFile);
-                            System.out.println("\uD83D\uDCE6 Imagem analisada pela Gemini\nResposta:");
+                            System.out.println("📦 Imagem analisada pela Gemini\nResposta:");
                             System.out.println(jsonGemini);
 
                             Comprovante pagamento = extrairPagamentoDoGemini(jsonGemini);
                             if (pagamento != null && pagamento.getValor() != null) {
-                                System.out.println("✅ Pagamento identificado: " + pagamento);
-                                processarPagamento(aluno, pagamento, remetenteEmail);                            }
+                                System.out.println("✅ Pagamento identificado para " + nomeAluno + ": " + pagamento);
+                                processarPagamento(aluno, pagamento, remetenteEmail);
+                            }
 
-                            if (tempFile.exists()) tempFile.delete();
+                            if (tempFile.exists()) {
+                                tempFile.delete();
+                            }
                         }
                     }
                 }
+                message.setFlag(Flags.Flag.SEEN, true);
             }
 
             inbox.close(false);
