@@ -2,6 +2,7 @@ package com.athlos.smashback.service;
 
 import com.athlos.smashback.config.GerenciadorTokenJWT;
 import com.athlos.smashback.dto.*;
+import com.athlos.smashback.exception.AuthenticationException;
 import com.athlos.smashback.exception.DataConflictException;
 import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.filter.UsuarioFilter;
@@ -38,7 +39,7 @@ public class UsuarioService {
     private AuthenticationManager authenticationManager;
 
     public UsuarioTokenDTO autenticar(Usuario usuario) {
-        Usuario usuarioAutenticado = usuarioRepository.findByEmailIgnoreCase(usuario.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Email do usuário não cadastrado"));
+        Usuario usuarioAutenticado = usuarioRepository.findByEmailIgnoreCase(usuario.getEmail()).orElseThrow(() -> new AuthenticationException("E-mail ou senha inválidos"));
         final UsernamePasswordAuthenticationToken credentials = new UsernamePasswordAuthenticationToken(usuario.getEmail(), usuario.getSenha());
         final Authentication authentication = authenticationManager.authenticate(credentials);
         SecurityContextHolder.getContext().setAuthentication(authentication);

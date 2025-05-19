@@ -118,7 +118,7 @@ public class AlunoController {
     @GetMapping("/aniversariantes")
     @Operation(summary = "Listar aniversariantes", description = "Retorna uma lista dos alunos aniversariantes do mês atual e meses futuros.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Quantidade de alunos ativos retornada com sucesso"),
+            @ApiResponse(responseCode = "200", description = "Lista de aniversariantes retornada com sucesso"),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
@@ -129,7 +129,8 @@ public class AlunoController {
     @GetMapping("/ativos")
     @Operation(summary = "Quantidade de alunos ativos", description = "Retorna a quantidade de alunos ativos.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Quantidade de alunos ativos retornada com sucesso"),
+            @ApiResponse(responseCode = "200", description = "Quantidade de alunos ativos retornada com sucesso", content = @Content(mediaType = "application/json",
+            examples = @ExampleObject(value = "50"))),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })

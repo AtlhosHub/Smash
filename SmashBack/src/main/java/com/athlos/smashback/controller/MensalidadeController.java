@@ -7,6 +7,7 @@ import com.athlos.smashback.repository.ValorMensalidadeRepository;
 import com.athlos.smashback.service.MensalidadeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -70,7 +71,8 @@ public class MensalidadeController {
     @GetMapping("/qtd-descontos")
     @Operation(summary = "Contar mensalidades com desconto", description = "Retorna a quantidade de mensalidades pagas com desconto no mês atual.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Quantidade de mensalidades com desconto retornada com sucesso"),
+            @ApiResponse(responseCode = "200", description = "Quantidade de mensalidades com desconto retornada com sucesso", content = @Content(mediaType = "application/json",
+                    examples = @ExampleObject(value = "25"))),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })

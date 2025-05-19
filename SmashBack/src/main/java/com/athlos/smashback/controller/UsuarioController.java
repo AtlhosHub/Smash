@@ -123,7 +123,6 @@ public class UsuarioController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
-            @ApiResponse(responseCode = "404", description = "E-mail do usuário não cadastrado", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
     public ResponseEntity<UsuarioTokenDTO> login(
