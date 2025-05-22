@@ -6,4 +6,4 @@ values
 insert into valor_mensalidade
     (data_inclusao, valor, desconto, manual)
 values
-    (now(), 100.00, false, false);
+    (now(), 120.00, false, false);

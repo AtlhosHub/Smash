@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -38,9 +37,7 @@ public class MensalidadeService {
     }
 
     public ResponseEntity<Integer> countMensalidadesDesconto() {
-        LocalDateTime inicioMes = LocalDate.now().withDayOfMonth(1).atStartOfDay();
-        LocalDateTime fimMes = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()).atTime(23, 59, 59);
-        return ResponseEntity.ok(mensalidadeRepository.countMensalidadesDesconto(inicioMes, fimMes));
+        return ResponseEntity.ok(mensalidadeRepository.countMensalidadesDesconto());
     }
 
     public ResponseEntity<List<GraficoDTO>> graficoMensalidade() {

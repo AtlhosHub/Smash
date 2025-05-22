@@ -28,8 +28,8 @@ public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> 
             @Param("status") List<Status> status
     );
 
-    @Query("SELECT COUNT(m) FROM Mensalidade m JOIN m.valor v WHERE m.status = 'PAGO' AND m.dataPagamento BETWEEN :inicioMes AND :fimMes AND v.desconto = true")
-    int countMensalidadesDesconto(@Param ("inicioMes") LocalDateTime inicioMes, @Param("fimMes") LocalDateTime fimMes);
+    @Query("SELECT COUNT(m) FROM Mensalidade m JOIN m.valor v WHERE m.status = 'PAGO' AND YEAR(m.dataPagamento) = YEAR(CURRENT_DATE)  AND v.desconto = true")
+    int countMensalidadesDesconto();
 
     @Query("""
         SELECT new com.athlos.smashback.dto.GraficoDTO(
