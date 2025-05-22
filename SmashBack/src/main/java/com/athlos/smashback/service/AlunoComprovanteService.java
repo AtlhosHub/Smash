@@ -132,7 +132,7 @@ public class AlunoComprovanteService {
                         m.getDataVencimento(),
                         m.getStatus().name(),
                         m.getFormaPagamento(),
-                        m.getValor().getValor(),
+                        m.getStatus() == Status.PAGO ?  m.getValor().getValor() : null,
                         m.getValor().isDesconto()
                 ))
                 .collect(Collectors.toList());
