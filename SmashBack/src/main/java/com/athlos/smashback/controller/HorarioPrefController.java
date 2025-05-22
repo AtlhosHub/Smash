@@ -29,12 +29,24 @@ public class HorarioPrefController {
     @Operation(summary = "Listar horários de aula", description = "Retorna uma lista de todos os horários de aula cadastrados no sistema.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de horários retornada com sucesso"),
-            @ApiResponse(responseCode = "204", description = "Lista de horários vazia", content = @Content()),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
     public ResponseEntity<List<HorarioPref>> listarHorarios() {
         return horarioPrefService.listarHorarios();
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar horário de aula por ID", description = "Retorna os detalhes de um horário de aula específico com base no ID fornecido.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista de horários retornada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
+            @ApiResponse(responseCode = "404", description = "Horário não encontrado", content = @Content()),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
+    })
+    public ResponseEntity<HorarioPref> buscarHorario(
+            @Parameter(description = "ID do horário de aula a ser buscado", example = "1") @PathVariable int id) {
+        return horarioPrefService.buscarHorario(id);
     }
 
     @PostMapping

@@ -33,7 +33,6 @@ public class ListaEsperaController {
     @Operation(summary = "Listar interessados na lista de espera", description = "Retorna uma lista de todos os interessados cadastrados na lista de espera.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de interessados retornada com sucesso"),
-            @ApiResponse(responseCode = "204", description = "Lista de interessados vazia", content = @Content()),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
@@ -45,7 +44,6 @@ public class ListaEsperaController {
     @Operation(summary = "Filtrar interessados na lista de espera", description = "Retorna uma lista de interessados com base nos critérios do filtro fornecido.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de interessados retornada com sucesso"),
-            @ApiResponse(responseCode = "204", description = "Lista de interessados vazia", content = @Content()),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })

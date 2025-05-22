@@ -33,7 +33,6 @@ public class UsuarioController {
     @Operation(summary = "Listar usuários", description = "Retorna uma lista de todos os usuários cadastrados no sistema.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de usuários retornada com sucesso"),
-            @ApiResponse(responseCode = "204", description = "Lista de usuários vazia", content = @Content()),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
@@ -46,7 +45,6 @@ public class UsuarioController {
     @Operation(summary = "Filtrar usuários", description = "Retorna uma lista de usuários com base nos critérios do filtro fornecido.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de usuários retornada com sucesso"),
-            @ApiResponse(responseCode = "204", description = "Lista de usuários vazia", content = @Content()),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
@@ -125,7 +123,6 @@ public class UsuarioController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
             @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
-            @ApiResponse(responseCode = "404", description = "E-mail do usuário não cadastrado", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
     public ResponseEntity<UsuarioTokenDTO> login(
