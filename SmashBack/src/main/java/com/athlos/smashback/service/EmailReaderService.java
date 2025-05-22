@@ -4,9 +4,11 @@ import com.athlos.smashback.adapters.JavaTimeAdapters;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.model.Comprovante;
 import com.athlos.smashback.model.Mensalidade;
+import com.athlos.smashback.model.ValorMensalidade;
 import com.athlos.smashback.repository.AlunoRepository;
 import com.athlos.smashback.repository.ComprovanteRepository;
 import com.athlos.smashback.repository.MensalidadeRepository;
+import com.athlos.smashback.repository.ValorMensalidadeRepository;
 import com.google.gson.*;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
@@ -44,6 +46,9 @@ public class EmailReaderService {
 
     @Autowired
     private ComprovanteRepository comprovanteRepository;
+
+    @Autowired
+    private ValorMensalidadeRepository valorMensalidadeRepository;
 
 
     @Scheduled(fixedDelay = 60000)
@@ -298,8 +303,8 @@ public class EmailReaderService {
                 Mensalidade primeira = mensalidades.get(0);
                 boolean aplicaDescPrimeira = comDesconto.contains(primeira);
                 double valorPrimeira = aplicaDescPrimeira
-                        ? primeira.getValor() - 10.0
-                        : primeira.getValor();
+                        ? primeira.getValor().getValor() - 10.0
+                        : primeira.getValor().getValor();
 
                 if (valorDisponivel < valorPrimeira) {
                     enviarEmailFalha(aluno, valorDisponivel, valorPrimeira, emailDestino);
@@ -314,20 +319,33 @@ public class EmailReaderService {
 
                 boolean aplicaDesc = comDesconto.contains(m);
                 double valorFinal = aplicaDesc
-                        ? m.getValor() - 10.0
-                        : m.getValor();
+                        ? m.getValor().getValor() - 10.0
+                        : m.getValor().getValor();
 
                 if (valorDisponivel >= valorFinal) {
+                    ValorMensalidade valor;
+
                     if (aplicaDesc) {
                         System.out.println("🎉 Desconto aplicado em "
                                 + m.getDataVencimento().getMonthValue() + "/"
                                 + m.getDataVencimento().getYear());
+
+                        valor = valorMensalidadeRepository
+                                .findByValorAndDesconto(valorFinal, true)
+                                .orElseGet(() -> {
+                                    ValorMensalidade novo = new ValorMensalidade();
+                                    novo.setValor(valorFinal);
+                                    novo.setDesconto(true);
+                                    return valorMensalidadeRepository.save(novo);
+                                });
+                    }else{
+                        valor = m.getValor();
                     }
 
                     m.setStatus(Status.PAGO);
                     m.setDataPagamento(comprovanteSalvo.getDataEnvio());
                     m.setComprovante(comprovanteSalvo);
-                    m.setValor(valorFinal);
+                    m.setValor(valor);
                     m.setFormaPagamento("Pix");
 
                     valorDisponivel -= valorFinal;

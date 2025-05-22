@@ -39,4 +39,9 @@ public interface AlunoRepository extends JpaRepository<Aluno, Integer>, JpaSpeci
     boolean existsByEmailIgnoreCaseOrCpfOrRg(String email, String cpf, String rg);
 
     boolean existsByEmailIgnoreCaseAndIdIsNot(String email, int id);
+
+    @Query("SELECT a FROM Aluno a ORDER BY a.dataNascimento")
+    List<Aluno> findAniversariantes();
+
+    int countByAtivo(boolean ativo);
 }

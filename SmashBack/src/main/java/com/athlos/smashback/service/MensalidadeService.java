@@ -1,9 +1,11 @@
 package com.athlos.smashback.service;
 
+import com.athlos.smashback.dto.GraficoDTO;
 import com.athlos.smashback.model.enums.Status;
 import com.athlos.smashback.model.Mensalidade;
 import com.athlos.smashback.repository.MensalidadeRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -32,5 +34,14 @@ public class MensalidadeService {
         });
 
         System.out.println("🔄 Mensalidades atualizadas: " + mensalidadesAtrasadas.size());
+    }
+
+    public ResponseEntity<Integer> countMensalidadesDesconto() {
+        return ResponseEntity.ok(mensalidadeRepository.countMensalidadesDesconto());
+    }
+
+    public ResponseEntity<List<GraficoDTO>> graficoMensalidade() {
+        List<GraficoDTO> grafico = mensalidadeRepository.graficoMensalidade();
+        return ResponseEntity.ok(grafico.isEmpty() ? List.of() : grafico);
     }
 }

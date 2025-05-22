@@ -1,18 +1,14 @@
 package com.athlos.smashback.service;
 
+import com.athlos.smashback.dto.AlunoAniversarioDTO;
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
+import com.athlos.smashback.dto.InfoAlunoDTO;
 import com.athlos.smashback.exception.DataConflictException;
 import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.filter.AlunoFilter;
-import com.athlos.smashback.model.Aluno;
-import com.athlos.smashback.model.Endereco;
-import com.athlos.smashback.model.Mensalidade;
-import com.athlos.smashback.model.Responsavel;
+import com.athlos.smashback.model.*;
 import com.athlos.smashback.model.enums.Status;
-import com.athlos.smashback.repository.AlunoRepository;
-import com.athlos.smashback.repository.EnderecoRepository;
-import com.athlos.smashback.repository.MensalidadeRepository;
-import com.athlos.smashback.repository.ResponsavelRepository;
+import com.athlos.smashback.repository.*;
 import com.athlos.smashback.service.AlunoComprovanteService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Sort;
@@ -32,34 +28,43 @@ public class AlunoService {
     private final ResponsavelRepository responsavelRepository;
     private final AlunoComprovanteService alunoComprovanteService;
     private final MensalidadeRepository mensalidadeRepository;
+    private final ValorMensalidadeService valorMensalidadeService;
     private static final int NUMERO_PARCELAS = 6;
 
-    public AlunoService(AlunoRepository alunoRepository, EnderecoRepository enderecoRepository, ResponsavelRepository responsavelRepository, AlunoComprovanteService alunoComprovanteService, MensalidadeRepository mensalidadeRepository) {
+    public AlunoService(AlunoRepository alunoRepository, EnderecoRepository enderecoRepository, ResponsavelRepository responsavelRepository, AlunoComprovanteService alunoComprovanteService, MensalidadeRepository mensalidadeRepository, ValorMensalidadeService valorMensalidadeService) {
         this.alunoRepository = alunoRepository;
         this.enderecoRepository = enderecoRepository;
         this.responsavelRepository = responsavelRepository;
         this.alunoComprovanteService = alunoComprovanteService;
         this.mensalidadeRepository = mensalidadeRepository;
+        this.valorMensalidadeService = valorMensalidadeService;
     }
 
     public ResponseEntity<List<Aluno>> listarAlunos() {
         List<Aluno> alunos = alunoRepository.findAll(Sort.by(Sort.Order.asc("nome").ignoreCase()));
-        return alunos.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(alunos);
+        return ResponseEntity.ok(alunos.isEmpty() ? List.of() : alunos);
     }
 
-    public ResponseEntity<Aluno> buscarAluno(int id) {
+    public ResponseEntity<InfoAlunoDTO> buscarAluno(int id) {
         if(!alunoRepository.existsById(id)){
             throw new ResourceNotFoundException("Aluno não encontrado");
         }
 
-        return ResponseEntity.ok(alunoRepository.findById(id).get());
+        Aluno aluno = alunoRepository.findById(id).get();
+
+        InfoAlunoDTO infoAluno = new InfoAlunoDTO(
+                aluno.getId(), aluno.getNome(), aluno.getEmail(), aluno.getDataNascimento(),aluno.getCpf(), aluno.getRg(),
+                aluno.getNomeSocial(), aluno.getGenero(), aluno.getCelular(), aluno.getNacionalidade(),
+                aluno.getNaturalidade(), aluno.getTelefone(), aluno.getProfissao(), aluno.isAtivo(),
+                aluno.isTemAtestado(), aluno.getDeficiencia(), aluno.isAutorizado(), aluno.getDataInclusao(),
+                aluno.getEndereco(), aluno.getResponsaveis(), aluno.getUsuarioInclusao().getId()
+        );
+
+        return ResponseEntity.ok(infoAluno);
     }
 
     public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(AlunoFilter filtro) {
         List<AlunoComprovanteDTO> lista = alunoComprovanteService.listarAlunosComComprovantes(filtro);
-//        if (lista.isEmpty()) {
-//            return ResponseEntity.noContent().build();
-//        }
         return ResponseEntity.ok(lista);
     }
 
@@ -175,14 +180,14 @@ public class AlunoService {
     public void gerarMensalidades(Aluno aluno) {
         LocalDate dataBase = aluno.getDataInclusao().toLocalDate().withDayOfMonth(5);
         LocalDate hoje = LocalDate.now();
-        final double VALOR_PADRAO = 412.54; //por enquanto estou definindo o valor aqui
+        ValorMensalidade valor = valorMensalidadeService.buscarValorMensalidadeAtual();
 
         for (int i = 0; i < NUMERO_PARCELAS; i++) {
             Mensalidade mensalidade = new Mensalidade();
             mensalidade.setAluno(aluno);
             LocalDate dataVencimento = dataBase.plusMonths(i);
             mensalidade.setDataVencimento(dataVencimento);
-            mensalidade.setValor(VALOR_PADRAO);
+            mensalidade.setValor(valor);
 
             mensalidade.setStatus(dataVencimento.isBefore(hoje)
                     ? Status.ATRASADO
@@ -190,5 +195,25 @@ public class AlunoService {
 
             mensalidadeRepository.save(mensalidade);
         }
+    }
+
+    public ResponseEntity<List<AlunoAniversarioDTO>> listarAniversarios() {
+        int mesAtual = LocalDate.now().getMonthValue();
+        List<Aluno> alunos = alunoRepository.findAniversariantes().stream()
+                .filter(a -> {
+                    int mesNascimento = a.getDataNascimento().getMonthValue();
+                    return mesNascimento >= mesAtual;
+                })
+                .collect(Collectors.toList());
+
+        List<AlunoAniversarioDTO> aniversariantes = alunos.stream()
+                .map(aluno -> new AlunoAniversarioDTO(aluno.getNome(), aluno.getDataNascimento()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(aniversariantes.isEmpty() ? List.of() : aniversariantes);
+    }
+
+    public ResponseEntity<Integer> qtdAlunosAtivos() {
+        int qtdAlunosAtivos = alunoRepository.countByAtivo(true);
+        return ResponseEntity.ok(qtdAlunosAtivos);
     }
 }

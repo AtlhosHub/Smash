@@ -2,6 +2,7 @@ package com.athlos.smashback.service;
 
 import com.athlos.smashback.config.GerenciadorTokenJWT;
 import com.athlos.smashback.dto.*;
+import com.athlos.smashback.exception.AuthenticationException;
 import com.athlos.smashback.exception.DataConflictException;
 import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.filter.UsuarioFilter;
@@ -38,7 +39,7 @@ public class UsuarioService {
     private AuthenticationManager authenticationManager;
 
     public UsuarioTokenDTO autenticar(Usuario usuario) {
-        Usuario usuarioAutenticado = usuarioRepository.findByEmailIgnoreCase(usuario.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Email do usuário não cadastrado"));
+        Usuario usuarioAutenticado = usuarioRepository.findByEmailIgnoreCase(usuario.getEmail()).orElseThrow(() -> new AuthenticationException("E-mail ou senha inválidos"));
         final UsernamePasswordAuthenticationToken credentials = new UsernamePasswordAuthenticationToken(usuario.getEmail(), usuario.getSenha());
         final Authentication authentication = authenticationManager.authenticate(credentials);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -52,7 +53,7 @@ public class UsuarioService {
         List<Usuario> usuarios = usuarioRepository.findAll(Sort.by(Sort.Order.asc("nome").ignoreCase()));
         List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
 
-        return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
+        return ResponseEntity.ok(usuarios.isEmpty() ? List.of() : usuariosLista);
     }
 
     public ResponseEntity<List<UsuarioListaDTO>> usuarioFiltro(UsuarioFilter filtro){
@@ -60,7 +61,7 @@ public class UsuarioService {
         List<Usuario> usuarios = usuarioRepository.findAll(Specification.where(spec), Sort.by(Sort.Order.asc("nome").ignoreCase()));
 
         List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
-        return usuarios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuariosLista);
+        return ResponseEntity.ok(usuarios.isEmpty() ? List.of() : usuariosLista);
     }
 
     public ResponseEntity<UsuarioInfoDTO> buscarUsuarioPorId(int id) {
