@@ -17,6 +17,9 @@ import java.util.List;
 @Getter @Setter @AllArgsConstructor  @NoArgsConstructor
 @Schema(description = "DTO que representa informações detalhadas de um aluno")
 public class InfoAlunoDTO {
+    @Schema(description = "Identificador único do aluno", example = "1")
+    private int id;
+
     @Schema(description = "Nome completo do aluno", example = "Carlos Oliveira")
     private String nome;
 

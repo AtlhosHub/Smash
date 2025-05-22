@@ -53,7 +53,7 @@ public class AlunoService {
         Aluno aluno = alunoRepository.findById(id).get();
 
         InfoAlunoDTO infoAluno = new InfoAlunoDTO(
-                aluno.getNome(), aluno.getEmail(), aluno.getDataNascimento(),aluno.getCpf(), aluno.getRg(),
+                aluno.getId(), aluno.getNome(), aluno.getEmail(), aluno.getDataNascimento(),aluno.getCpf(), aluno.getRg(),
                 aluno.getNomeSocial(), aluno.getGenero(), aluno.getCelular(), aluno.getNacionalidade(),
                 aluno.getNaturalidade(), aluno.getTelefone(), aluno.getProfissao(), aluno.isAtivo(),
                 aluno.isTemAtestado(), aluno.getDeficiencia(), aluno.isAutorizado(), aluno.getDataInclusao(),
