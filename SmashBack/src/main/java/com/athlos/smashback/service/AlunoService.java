@@ -2,6 +2,7 @@ package com.athlos.smashback.service;
 
 import com.athlos.smashback.dto.AlunoAniversarioDTO;
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
+import com.athlos.smashback.dto.InfoAlunoDTO;
 import com.athlos.smashback.exception.DataConflictException;
 import com.athlos.smashback.exception.ResourceNotFoundException;
 import com.athlos.smashback.filter.AlunoFilter;
@@ -44,12 +45,22 @@ public class AlunoService {
         return ResponseEntity.ok(alunos.isEmpty() ? List.of() : alunos);
     }
 
-    public ResponseEntity<Aluno> buscarAluno(int id) {
+    public ResponseEntity<InfoAlunoDTO> buscarAluno(int id) {
         if(!alunoRepository.existsById(id)){
             throw new ResourceNotFoundException("Aluno não encontrado");
         }
 
-        return ResponseEntity.ok(alunoRepository.findById(id).get());
+        Aluno aluno = alunoRepository.findById(id).get();
+
+        InfoAlunoDTO infoAluno = new InfoAlunoDTO(
+                aluno.getId(), aluno.getNome(), aluno.getEmail(), aluno.getDataNascimento(),aluno.getCpf(), aluno.getRg(),
+                aluno.getNomeSocial(), aluno.getGenero(), aluno.getCelular(), aluno.getNacionalidade(),
+                aluno.getNaturalidade(), aluno.getTelefone(), aluno.getProfissao(), aluno.isAtivo(),
+                aluno.isTemAtestado(), aluno.getDeficiencia(), aluno.isAutorizado(), aluno.getDataInclusao(),
+                aluno.getEndereco(), aluno.getResponsaveis(), aluno.getUsuarioInclusao().getId()
+        );
+
+        return ResponseEntity.ok(infoAluno);
     }
 
     public ResponseEntity<List<AlunoComprovanteDTO>> listarAlunosComComprovantes(AlunoFilter filtro) {
