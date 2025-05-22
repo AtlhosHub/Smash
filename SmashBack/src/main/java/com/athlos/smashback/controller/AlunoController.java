@@ -3,6 +3,7 @@ package com.athlos.smashback.controller;
 import com.athlos.smashback.dto.AlunoAniversarioDTO;
 import com.athlos.smashback.dto.AlunoComprovanteDTO;
 import com.athlos.smashback.dto.HistoricoMensalidadeFiltroDTO;
+import com.athlos.smashback.dto.InfoAlunoDTO;
 import com.athlos.smashback.filter.AlunoFilter;
 import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.service.AlunoComprovanteService;
@@ -53,7 +54,7 @@ public class AlunoController {
             @ApiResponse(responseCode = "404", description = "Aluno não encontrado", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
-    public ResponseEntity<Aluno> buscarAluno(
+    public ResponseEntity<InfoAlunoDTO> buscarAluno(
             @Parameter(description = "ID do aluno a ser buscado", example = "1") @PathVariable int id) {
         return alunoService.buscarAluno(id);
     }
