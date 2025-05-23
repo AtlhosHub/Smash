@@ -7,11 +7,13 @@ import com.athlos.smashback.model.Usuario;
 import com.athlos.smashback.repository.PasswordResetTokenRepository;
 import com.athlos.smashback.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -44,12 +46,16 @@ public class PasswordResetService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Gera e envia token; lança exceção se e-mail não existir
+     */
     @Transactional
     public void solicitarToken(String email) {
         log.debug(">>> solicitarToken → email bruto:'{}' → trim:'{}'", email, email.trim());
         Usuario user = usuarioRepo.findByEmailIgnoreCase(email.trim())
-                .orElseThrow(() -> new IllegalArgumentException("E-mail não cadastrado"));
-
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NO_CONTENT, "E-mail não cadastrado")
+                );
         tokenRepo.findAllByUsuarioAndUsadoFalse(user)
                 .forEach(t -> t.setUsado(true));
 
@@ -67,10 +73,7 @@ public class PasswordResetService {
                         "Clique no link abaixo para redefinir sua senha:%n%s%n%n" +
                         "Ou use este código caso prefira:%n%s%n%n" +
                         "Esse link expira em %d minutos.",
-                user.getNome(),
-                link,
-                prt.getToken(),
-                tokenExpirationMinutes
+                user.getNome(), link, prt.getToken(), tokenExpirationMinutes
         );
 
         SimpleMailMessage msg = new SimpleMailMessage();
@@ -83,14 +86,13 @@ public class PasswordResetService {
     @Transactional
     public void resetarSenha(String token, String novaSenha) {
         Optional<PasswordResetToken> optional = tokenRepo.findByToken(token);
-        PasswordResetToken prt = optional.orElseThrow(
-                () -> new IllegalArgumentException("Token inválido")
-        );
-
+        if (optional.isEmpty()) {
+            throw new IllegalArgumentException("Token inválido");
+        }
+        PasswordResetToken prt = optional.get();
         if (prt.isUsado() || prt.isExpirado()) {
             throw new IllegalArgumentException("Token expirado ou já usado");
         }
-
         Usuario user = prt.getUsuario();
         user.setSenha(passwordEncoder.encode(novaSenha));
         prt.setUsado(true);
