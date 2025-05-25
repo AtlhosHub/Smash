@@ -41,7 +41,7 @@ public class MensalidadeController {
     @Operation(summary = "Registrar pagamento manualmente", description = "Registra o pagamento realizado por um aluno.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Pagamento registrado com sucesso"),
-            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
+            @ApiResponse(responseCode = "400", description = "Status inválido ou mensalidade não pendente", content = @Content()),
             @ApiResponse(responseCode = "404", description = "Mensalidade não encontrada", content = @Content()),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
     })
@@ -50,19 +50,21 @@ public class MensalidadeController {
             @RequestBody @Valid PagamentoManualDTO dto) {
 
         ValorMensalidade valor = valorMensalidadeRepository
-            .findByValorAndManual(dto.getValorPago(), true)
-            .orElseGet(() -> {
-                ValorMensalidade novo = new ValorMensalidade();
-                novo.setValor(dto.getValorPago());
-                novo.setManual(true);
-                return valorMensalidadeRepository.save(novo);
-            });
+                .findByValorAndManual(dto.getValorPago(), true)
+                .orElseGet(() -> {
+                    ValorMensalidade novo = new ValorMensalidade();
+                    novo.setValor(dto.getValorPago());
+                    novo.setManual(true);
+                    return valorMensalidadeRepository.save(novo);
+                });
 
         return mensalidadeRepository.findById(id).map(m -> {
-            m.setStatus(Status.PAGO);
-            m.setDataPagamento(LocalDateTime.now());
+
+            m.setStatus(dto.getStatus());
+            m.setDataPagamento(dto.getDataPagamento());
             m.setValor(valor);
             m.setFormaPagamento(dto.getFormaPagamento());
+
             mensalidadeRepository.save(m);
             return ResponseEntity.ok(m);
         }).orElseThrow(() -> new ResourceNotFoundException("Mensalidade não encontrada"));
