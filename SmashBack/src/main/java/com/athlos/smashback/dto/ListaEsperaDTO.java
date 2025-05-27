@@ -1,5 +1,6 @@
 package com.athlos.smashback.dto;
 
+import com.athlos.smashback.model.HorarioPref;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,6 +27,6 @@ public class ListaEsperaDTO {
     )
     private LocalDateTime dataInteresse;
 
-    @Schema(description = "Horário de preferência do interessado", example = "14:30:00")
-    private LocalTime horarioPreferencia;
+    @Schema(description = "Horário de preferência do interessado")
+    private HorarioPref horarioPreferencia;
 }

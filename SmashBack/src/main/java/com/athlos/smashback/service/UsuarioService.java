@@ -51,7 +51,7 @@ public class UsuarioService {
 
     public ResponseEntity<List<UsuarioListaDTO>> listarUsuarios() {
         List<Usuario> usuarios = usuarioRepository.findAll(Sort.by(Sort.Order.asc("nome").ignoreCase()));
-        List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
+        List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), (usuario.getNomeSocial() == null || usuario.getNomeSocial().trim().isEmpty()) ? usuario.getNome() : usuario.getNomeSocial())).toList();
 
         return ResponseEntity.ok(usuarios.isEmpty() ? List.of() : usuariosLista);
     }
@@ -60,7 +60,7 @@ public class UsuarioService {
         Specification<Usuario> spec = UsuarioSpecification.filtrarPor(filtro);
         List<Usuario> usuarios = usuarioRepository.findAll(Specification.where(spec), Sort.by(Sort.Order.asc("nome").ignoreCase()));
 
-        List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), usuario.getNome())).toList();
+        List<UsuarioListaDTO> usuariosLista = usuarios.stream().map(usuario -> new UsuarioListaDTO(usuario.getId(), (usuario.getNomeSocial() == null || usuario.getNomeSocial().trim().isEmpty()) ? usuario.getNome() : usuario.getNomeSocial())).toList();
         return ResponseEntity.ok(usuarios.isEmpty() ? List.of() : usuariosLista);
     }
 

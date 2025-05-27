@@ -21,4 +21,7 @@ public class UsuarioTokenDTO {
 
     @Schema(description = "Token de autenticação do usuário", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String token;
+
+    @Schema(description = "Usuário que incluiu este usuário no sistema")
+    private Integer usuarioInclusao;
 }

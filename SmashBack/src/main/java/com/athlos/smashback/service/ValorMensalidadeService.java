@@ -16,7 +16,8 @@ public class ValorMensalidadeService {
     }
 
     public ValorMensalidade buscarValorMensalidadeAtual() {
-        return valorMensalidadeRepository.findFirstByManualFalseAndDescontoFalseOrderByDataInclusaoDesc();
+        ValorMensalidade atual = valorMensalidadeRepository.findFirstByManualFalseAndDescontoFalseOrderByDataInclusaoDesc();
+        return atual;
     }
 
     public ResponseEntity<List<ValorMensalidade>> listarValoresMensalidade() {

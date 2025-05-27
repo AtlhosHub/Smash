@@ -30,7 +30,7 @@ public class ListaEspera {
     private String email;
 
     @PastOrPresent(message = "A data de interesse deve ser uma data presente ou passada")
-    @Schema(description = "Data de interesse do interessado", example = "2025-04-21")
+    @Schema(description = "Data de interesse do interessado", example = "2025-04-21T14:30:00")
     private LocalDateTime dataInteresse;
 
     @NotBlank(message = "O celular não pode ficar em branco")
@@ -61,6 +61,7 @@ public class ListaEspera {
 
     @ManyToOne
     @JoinColumn(name = "horario_pref_id")
+    @JsonIgnoreProperties({"horarioPref", "interessados"})
     @Schema(description = "Horário de aula associado ao interessado")
     private HorarioPref horarioPref;
 }

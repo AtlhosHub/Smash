@@ -24,7 +24,7 @@ public class ListaEsperaService {
     public ResponseEntity<List<ListaEsperaDTO>> listaEspera() {
         List<ListaEspera> listaEspera = listaEsperaRepository.findAll(Sort.by(Sort.Direction.ASC, "dataInteresse"));
 
-        List<ListaEsperaDTO> interessados = listaEspera.stream().map(interessado -> new ListaEsperaDTO(interessado.getId(), interessado.getNome(), interessado.getDataInteresse(), interessado.getHorarioPref().getHorarioAula())).toList();
+        List<ListaEsperaDTO> interessados = listaEspera.stream().map(interessado -> new ListaEsperaDTO(interessado.getId(), (interessado.getNomeSocial() == null || interessado.getNomeSocial().trim().isEmpty()) ? interessado.getNome() : interessado.getNomeSocial(), interessado.getDataInteresse(), interessado.getHorarioPref())).toList();
         return ResponseEntity.ok(listaEspera.isEmpty() ? List.of() : interessados);
     }
 
@@ -32,7 +32,7 @@ public class ListaEsperaService {
         Specification<ListaEspera> spec = ListaEsperaSpecification.filtrarPor(filtro);
         List<ListaEspera> listaEspera = listaEsperaRepository.findAll(Specification.where(spec), Sort.by(Sort.Direction.ASC, "dataInteresse"));
 
-        List<ListaEsperaDTO> interessados = listaEspera.stream().map(interessado -> new ListaEsperaDTO(interessado.getId(), interessado.getNome(), interessado.getDataInteresse(), interessado.getHorarioPref().getHorarioAula())).toList();
+        List<ListaEsperaDTO> interessados = listaEspera.stream().map(interessado -> new ListaEsperaDTO(interessado.getId(), (interessado.getNomeSocial() == null || interessado.getNomeSocial().trim().isEmpty()) ? interessado.getNome() : interessado.getNomeSocial(), interessado.getDataInteresse(), interessado.getHorarioPref())).toList();
         return ResponseEntity.ok(listaEspera.isEmpty() ? List.of() : interessados);
     }
 

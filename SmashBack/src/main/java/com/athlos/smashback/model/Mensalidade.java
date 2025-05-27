@@ -37,6 +37,9 @@ public class Mensalidade {
     @Schema(description = "Status da mensalidade", example = "PAGO")
     private Status status;
 
+    @Schema(description = "Indica se a mensalidade foi alterada automaticamente", example = "true")
+    private boolean automatica = false;
+
     @ManyToOne
     @JoinColumn(name = "valor_mensalidade_id")
     @Schema(description = "Valor da mensalidade")

@@ -1,5 +1,6 @@
 package com.athlos.smashback.controller;
 
+import com.athlos.smashback.dto.ConfiguracoesHorario;
 import com.athlos.smashback.model.HorarioPref;
 import com.athlos.smashback.service.HorarioPrefService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -88,5 +89,18 @@ public class HorarioPrefController {
             @Parameter(description = "ID do horário de aula a ser atualizado", example = "1") @PathVariable int id,
             @RequestBody @Parameter(description = "Novos dados do horário de aula") HorarioPref novoHorario) {
         return horarioPrefService.atualizarHorario(id, novoHorario);
+    }
+
+    @PostMapping("/adicionar-ou-atualizar")
+    @Operation(summary = "Adicionar ou atualizar horários de aula", description = "Adiciona novos horários de aula ou atualiza os existentes com base nos dados fornecidos.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Horários adicionados ou atualizados com sucesso"),
+            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
+            @ApiResponse(responseCode = "409", description = "Horário já cadastrado", content = @Content()),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
+    })
+    public ResponseEntity<List<HorarioPref>> adicionarOuAtualizarHorarios(
+            @RequestBody @Parameter(description = "Lista de horários de aula a serem adicionados ou atualizados") List<ConfiguracoesHorario> horarios) {
+        return horarioPrefService.adicionarOuAtualizarHorarios(horarios);
     }
 }

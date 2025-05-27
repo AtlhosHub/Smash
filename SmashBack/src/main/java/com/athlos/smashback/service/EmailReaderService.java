@@ -347,6 +347,7 @@ public class EmailReaderService {
                     m.setComprovante(comprovanteSalvo);
                     m.setValor(valor);
                     m.setFormaPagamento("Pix");
+                    m.setAutomatica(true);
 
                     valorDisponivel -= valorFinal;
                     mensalidadeRepository.save(m);
