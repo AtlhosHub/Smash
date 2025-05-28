@@ -84,7 +84,7 @@ public class AlunoComprovanteService {
                 resultado.add(new AlunoComprovanteDTO(
                         m.getId(),
                         aluno.getId(),
-                        (aluno.getNomeSocial().trim().isEmpty() || aluno.getNomeSocial() == null) ? aluno.getNome() : aluno.getNomeSocial(),
+                        (aluno.getNomeSocial() == null || aluno.getNomeSocial().trim().isEmpty()) ? aluno.getNome() : aluno.getNomeSocial(),
                         aluno.isAtivo(),
                         dataPagamento,
                         m.getDataVencimento(),
