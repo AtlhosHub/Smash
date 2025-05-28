@@ -84,7 +84,7 @@ public class AlunoComprovanteService {
                 resultado.add(new AlunoComprovanteDTO(
                         m.getId(),
                         aluno.getId(),
-                        aluno.getNome(),
+                        (aluno.getNomeSocial() == null || aluno.getNomeSocial().trim().isEmpty()) ? aluno.getNome() : aluno.getNomeSocial(),
                         aluno.isAtivo(),
                         dataPagamento,
                         m.getDataVencimento(),
@@ -92,7 +92,7 @@ public class AlunoComprovanteService {
                         m.getFormaPagamento(),
                         m.getStatus() == Status.PAGO ?  m.getValor().getValor() : null,
                         m.getValor().isDesconto(),
-                        m.getValor().isManual()
+                        m.isAutomatica()
                 ));
             }
         }
@@ -127,7 +127,7 @@ public class AlunoComprovanteService {
                 .map(m -> new AlunoComprovanteDTO(
                         m.getId(),
                         aluno.getId(),
-                        aluno.getNome(),
+                        (aluno.getNomeSocial() == null || aluno.getNomeSocial().trim().isEmpty()) ? aluno.getNome() : aluno.getNomeSocial(),
                         aluno.isAtivo(),
                         m.getDataPagamento(),
                         m.getDataVencimento(),
@@ -135,7 +135,7 @@ public class AlunoComprovanteService {
                         m.getFormaPagamento(),
                         m.getStatus() == Status.PAGO ?  m.getValor().getValor() : null,
                         m.getValor().isDesconto(),
-                        m.getValor().isManual()
+                        m.isAutomatica()
                 ))
                 .collect(Collectors.toList());
     }

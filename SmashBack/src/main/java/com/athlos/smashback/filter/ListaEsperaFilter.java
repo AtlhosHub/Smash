@@ -19,6 +19,6 @@ public class ListaEsperaFilter {
     @Schema(description = "Data final de interesse para busca", example = "2025-12-31")
     private LocalDateTime dataInteresseTo;
 
-    @Schema(description = "Horário de preferência do interessado", example = "14:30:00")
+    @Schema(description = "Horário de preferência do interessado")
     private HorarioPref horarioPreferencia;
 }

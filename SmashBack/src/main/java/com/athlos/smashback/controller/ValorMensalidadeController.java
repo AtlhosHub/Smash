@@ -25,6 +25,17 @@ public class ValorMensalidadeController {
         this.valorMensalidadeService = valorMensalidadeService;
     }
 
+    @GetMapping("/atual")
+    @Operation(summary = "Buscar valor de mensalidade atual", description = "Retorna o valor de mensalidade mais recente cadastrado no sistema.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Valor de mensalidade atual retornado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content()),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content())
+    })
+    public ResponseEntity<ValorMensalidade> buscarValorMensalidadeAtual(){
+        return ResponseEntity.ok(valorMensalidadeService.buscarValorMensalidadeAtual());
+    }
+
     @GetMapping
     @Operation(summary = "Listar valores de mensalidade", description = "Retorna uma lista de todos os valores de mensalidade cadastrados no sistema.")
     @ApiResponses({

@@ -5,10 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalTime;
+import java.util.Optional;
 
 @Repository
 public interface HorarioPrefRepository extends JpaRepository<HorarioPref, Integer> {
-    boolean existsByHorarioAula(LocalTime horarioAula);
+    boolean existsByHorarioAulaInicioAndHorarioAulaFim(LocalTime horarioAulaInicio, LocalTime horarioAulaFim);
 
-    boolean existsByHorarioAulaAndIdIsNot(LocalTime horarioAula, int id);
-}
+    boolean existsByHorarioAulaInicioAndHorarioAulaFimAndIdIsNot(LocalTime horarioAulaInicio, LocalTime horarioAulaFim, int id);}
