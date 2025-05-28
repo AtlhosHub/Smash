@@ -91,7 +91,8 @@ public class AlunoComprovanteService {
                         status,
                         m.getFormaPagamento(),
                         m.getStatus() == Status.PAGO ?  m.getValor().getValor() : null,
-                        m.getValor().isDesconto()
+                        m.getValor().isDesconto(),
+                        m.isAutomatica()
                 ));
             }
         }
@@ -133,7 +134,8 @@ public class AlunoComprovanteService {
                         m.getStatus().name(),
                         m.getFormaPagamento(),
                         m.getStatus() == Status.PAGO ?  m.getValor().getValor() : null,
-                        m.getValor().isDesconto()
+                        m.getValor().isDesconto(),
+                        m.isAutomatica()
                 ))
                 .collect(Collectors.toList());
     }

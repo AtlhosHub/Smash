@@ -42,4 +42,7 @@ public class AlunoComprovanteDTO {
 
     @Schema(description = "Indica se a mensalidade foi paga com desconto", example = "true")
     private Boolean desconto;
+
+    @Schema(description = "Indica se o pagamento foi registrado automaticamente pelo sistema", example = "false")
+    private Boolean automatico;
 }
