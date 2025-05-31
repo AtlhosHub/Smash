@@ -39,6 +39,12 @@ public class Comprovante {
     @Schema(description = "Valor aplicado após descontos ou ajustes", example = "150.00")
     private Double valorAplicado;
 
+    @Schema(description = "Usuário que irá receber o comprovante", example = "Walter White")
+    private String usuarioDestino;
+
+    @Schema(description = "Banco do Destinatario", example = "Caixa Econômica Federal")
+    private String bancoDestino;
+
     @ManyToOne
     @JoinColumn(name = "aluno_id")
     @Schema(description = "Aluno associado ao comprovante")

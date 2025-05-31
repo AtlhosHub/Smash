@@ -99,15 +99,15 @@ public class EmailReaderService {
                             Comprovante pagamento = extrairPagamentoDoGemini(jsonGemini);
 
                             if (pagamento != null && pagamento.getValor() != null) {
-                                boolean nomeCorreto = verificarNome(pagamento.getNomeRemetente(), NOME_DESTINATARIO);
-                                boolean bancoCorreto = verificarBanco(pagamento.getBancoOrigem(), BANCO_OBRIGATORIO);
+                                boolean nomeCorreto = verificarNome(pagamento.getUsuarioDestino(), NOME_DESTINATARIO);
+                                boolean bancoCorreto = verificarBanco(pagamento.getBancoDestino(), BANCO_OBRIGATORIO);
 
                                 if (!nomeCorreto) {
-                                    System.out.println("❌ Nome do destinatário incorreto: " + pagamento.getNomeRemetente());
+                                    System.out.println("❌ Nome do destinatário incorreto: " + pagamento.getUsuarioDestino());
                                     mensagemService.enviarErroGenerico(
                                             aluno,
                                             "Nome do destinatário incorreto",
-                                            "Recebido no comprovante: \"" + pagamento.getNomeRemetente() + "\"",
+                                            "Recebido no comprovante: \"" + pagamento.getUsuarioDestino() + "\"",
                                             remetenteEmail
                                     );
                                     message.setFlag(Flags.Flag.SEEN, true);
@@ -116,11 +116,11 @@ public class EmailReaderService {
                                 }
 
                                 if (!bancoCorreto) {
-                                    System.out.println("❌ Banco incorreto: " + pagamento.getBancoOrigem());
+                                    System.out.println("❌ Banco incorreto: " + pagamento.getBancoDestino());
                                     mensagemService.enviarErroGenerico(
                                             aluno,
                                             "Banco incorreto",
-                                            "Recebido no comprovante: \"" + pagamento.getBancoOrigem() + "\"",
+                                            "Recebido no comprovante: \"" + pagamento.getBancoDestino() + "\"",
                                             remetenteEmail
                                     );
                                     message.setFlag(Flags.Flag.SEEN, true);
@@ -207,6 +207,8 @@ public class EmailReaderService {
                                   Converta para o formato ISO_LOCAL_DATE_TIME (yyyy-MM-dd'T'HH:mm:ss).
                                 - bancoOrigem: banco de onde saiu o dinheiro.
                                 Se algum campo não estiver claramente presente, use null.
+                                - usuarioDestino: nome do usuário que receberá o comprovante.
+                                - bancoDestino: banco do destinatário do comprovante.
                             
                                 Exemplo de Conversão de Data:
                                 - Data no comprovante: "01/04/2025 - 07:13:18" → "2025-04-01T07:13:18"
@@ -438,8 +440,8 @@ public class EmailReaderService {
         return true;
     }
 
-    private boolean verificarBanco(String bancoOrigem, String bancoEsperado) {
-        if (bancoOrigem == null) return false;
-        return bancoOrigem.toLowerCase().contains(bancoEsperado.toLowerCase());
+    private boolean verificarBanco(String bancoDestino, String bancoEsperado) {
+        if (bancoDestino == null) return false;
+        return bancoDestino.toLowerCase().contains(bancoEsperado.toLowerCase());
     }
 }
