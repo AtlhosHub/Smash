@@ -32,10 +32,11 @@ public class MensalidadeService {
         mensalidadesAtrasadas.forEach(m -> {
             m.setStatus(Status.ATRASADO);
 
-            if (m.getDataVencimento().getMonthValue() < hoje.getMonthValue() ||
-                    m.getDataVencimento().getYear() < hoje.getYear()) {
-                m.getValor().setValor(m.getValor().getValor() + 3.0);            }
+            long monthsOverdue = m.getDataVencimento().until(hoje).toTotalMonths();
 
+            if (monthsOverdue > 0) {
+                m.getValor().setValor(m.getValor().getValor() + (3.0 * monthsOverdue));
+            }
             mensalidadeRepository.save(m);
         });
 
