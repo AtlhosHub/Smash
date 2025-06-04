@@ -8,3 +8,10 @@ insert into valor_mensalidade
     (data_inclusao, valor, desconto, manual)
 values
     (now(), 120.00, false, false);
+
+insert into horario_pref
+    (horario_aula_inicio, horario_aula_fim, data_inclusao)
+values
+    ('18:00', '20:00', now()),
+    ('20:00', '22:00', now()),
+    ('14:00', '17:00', now());

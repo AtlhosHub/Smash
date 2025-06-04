@@ -24,6 +24,7 @@ public class Usuario {
     private int id;
 
     @NotBlank(message = "O nome do usuário não pode ficar em branco")
+    @Pattern(regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ\\s]+$", message = "O nome do usuário deve conter apenas letras e espaços")
     @Schema(description = "Nome completo do usuário", example = "João Silva")
     private String nome;
 
