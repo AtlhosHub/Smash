@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -30,6 +31,12 @@ public class MensalidadeService {
 
         mensalidadesAtrasadas.forEach(m -> {
             m.setStatus(Status.ATRASADO);
+
+            long monthsOverdue = m.getDataVencimento().until(hoje).toTotalMonths();
+
+            if (monthsOverdue > 0) {
+                m.getValor().setValor(m.getValor().getValor() + (3.0 * monthsOverdue));
+            }
             mensalidadeRepository.save(m);
         });
 
