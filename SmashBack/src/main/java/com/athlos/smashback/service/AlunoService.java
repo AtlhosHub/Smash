@@ -180,6 +180,7 @@ public class AlunoService {
         LocalDate hoje = LocalDate.now();
         ValorMensalidade valor = valorMensalidadeService.buscarValorMensalidadeAtual();
 
+        // Generate mensalidades for the initial year
         for (int i = 0; i < NUMERO_PARCELAS; i++) {
             Mensalidade mensalidade = new Mensalidade();
             mensalidade.setAluno(aluno);
@@ -192,6 +193,22 @@ public class AlunoService {
                     : Status.PENDENTE);
 
             mensalidadeRepository.save(mensalidade);
+        }
+
+        long unpaidCount = mensalidadeRepository.countByAlunoAndStatusIn(aluno, List.of(Status.PENDENTE, Status.ATRASADO));
+        if (unpaidCount <= 2) {
+
+            for (int i = NUMERO_PARCELAS; i < NUMERO_PARCELAS * 2; i++) {
+                Mensalidade mensalidade = new Mensalidade();
+                mensalidade.setAluno(aluno);
+                LocalDate dataVencimento = dataBase.plusMonths(i);
+                mensalidade.setDataVencimento(dataVencimento);
+                mensalidade.setValor(valor);
+
+                mensalidade.setStatus(Status.PENDENTE);
+
+                mensalidadeRepository.save(mensalidade);
+            }
         }
     }
 

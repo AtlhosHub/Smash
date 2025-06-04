@@ -48,4 +48,10 @@ public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> 
 
     List<Mensalidade> findByAluno(Aluno aluno);
 
+    @Query("SELECT COUNT(m) FROM Mensalidade m WHERE m.aluno = :aluno AND m.status IN :statuses")
+    long countByAlunoAndStatusIn(
+            @Param("aluno") Aluno aluno,
+            @Param("statuses") List<Status> statuses
+    );
+
 }
