@@ -29,7 +29,7 @@ public class AlunoService {
     private final AlunoComprovanteService alunoComprovanteService;
     private final MensalidadeRepository mensalidadeRepository;
     private final ValorMensalidadeService valorMensalidadeService;
-    private static final int NUMERO_PARCELAS = 6;
+    private static final int NUMERO_PARCELAS = 12;
 
     public AlunoService(AlunoRepository alunoRepository, EnderecoRepository enderecoRepository, ResponsavelRepository responsavelRepository, AlunoComprovanteService alunoComprovanteService, MensalidadeRepository mensalidadeRepository, ValorMensalidadeService valorMensalidadeService) {
         this.alunoRepository = alunoRepository;
@@ -136,7 +136,6 @@ public class AlunoService {
             aluno.setGenero(novoAluno.getGenero());
             aluno.setDeficiencia(novoAluno.getDeficiencia());
 
-            // Atualiza ou reutiliza endereço existente
             Endereco novoEndereco = novoAluno.getEndereco();
             if (novoEndereco != null) {
                 Optional<Endereco> enderecoExistente = enderecoRepository
@@ -168,10 +167,9 @@ public class AlunoService {
 
                 aluno.setResponsaveis(responsaveisAtualizados);
             } else {
-                aluno.setResponsaveis(Collections.emptyList()); // Ou mantenha os atuais, se preferir
+                aluno.setResponsaveis(Collections.emptyList());
             }
 
-            // Salva e retorna o aluno atualizado
             return ResponseEntity.ok(alunoRepository.save(aluno));
         }).orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado"));
     }
