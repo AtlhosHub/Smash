@@ -33,7 +33,7 @@ public class EmailReaderService {
     private static final String EMAIL = "acdnbvilaformosa@gmail.com";
     private static final String PASSWORD = "tuqu lefu cbmq pega";
     private static final String NOME_DESTINATARIO = "Walter Teixeira de Camargo";
-    private static final String BANCO_OBRIGATORIO = "Caixa Econômica";
+    private static final String BANCO_OBRIGATORIO = "Caixa Economica Federal";
 
     @Autowired
     private AlunoRepository alunoRepository;
