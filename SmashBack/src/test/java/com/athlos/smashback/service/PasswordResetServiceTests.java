@@ -91,4 +91,96 @@ public class PasswordResetServiceTests {
 
         assertEquals("E-mail não cadastrado", exception.getMessage());
     }
+
+    @Test
+    void resetarSenhaSuccess() {
+        String token = "valid";
+        String novaSenha = "novaSenha@123";
+
+        PasswordResetToken prt = new PasswordResetToken();
+        prt.setToken(token);
+        prt.setUsado(false);
+        prt.setExpiracao(LocalDateTime.now().plusMinutes(60));
+
+        Usuario usuario = new Usuario();
+        usuario.setId(1);
+        prt.setUsuario(usuario);
+
+        when(tokenRepo.findByToken(token)).thenReturn(Optional.of(prt));
+        when(passwordEncoder.encode(novaSenha)).thenReturn("senhaCriptografada");
+
+        passwordResetService.resetarSenha(token, novaSenha);
+
+        verify(tokenRepo).findByToken(token);
+        verify(passwordEncoder).encode(novaSenha);
+
+        assertTrue(prt.isUsado());
+        assertEquals("senhaCriptografada", usuario.getSenha());
+    }
+
+    @Test
+    void resetarSenhaInvalidToken() {
+        String token = "invalid";
+        when(tokenRepo.findByToken(token)).thenReturn(Optional.empty());
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            passwordResetService.resetarSenha(token, "senha");
+        });
+
+        assertEquals("Token inválido", exception.getMessage());
+    }
+
+    @Test
+    void resetarSenhaExpiredToken() {
+        String token = "expired";
+        PasswordResetToken prt = new PasswordResetToken();
+        prt.setToken(token);
+        prt.setExpiracao(LocalDateTime.now().minusMinutes(10));
+
+        when(tokenRepo.findByToken(token)).thenReturn(Optional.of(prt));
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            passwordResetService.resetarSenha(token, "novaSenha");
+        });
+
+        assertEquals("Token expirado ou já usado", exception.getMessage());
+    }
+
+    @Test
+    void resetarSenhaUsedToken() {
+        String token = "used";
+        PasswordResetToken prt = new PasswordResetToken();
+        prt.setToken(token);
+        prt.setUsado(true);
+
+        when(tokenRepo.findByToken(token)).thenReturn(Optional.of(prt));
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            passwordResetService.resetarSenha(token, "novaSenha");
+        });
+
+        assertEquals("Token expirado ou já usado", exception.getMessage());
+    }
+
+    @Test
+    void buscarToken() {
+        String token = "token";
+        PasswordResetToken prt = new PasswordResetToken();
+        prt.setToken(token);
+
+        when(tokenRepo.findByToken(token)).thenReturn(Optional.of(prt));
+
+        Optional<PasswordResetToken> resp = passwordResetService.buscarToken(token);
+
+        assertTrue(resp.isPresent());
+        assertEquals(token, resp.get().getToken());
+    }
+
+    @Test
+    void emailExiste() {
+        String email = "email@email.com";
+        when(usuarioRepository.existsByEmailIgnoreCase(email)).thenReturn(true);
+        boolean exists = passwordResetService.emailExiste(email);
+
+        assertTrue(exists);
+    }
 }
