@@ -178,7 +178,7 @@ public class AlunoService {
 
 
     public void gerarMensalidades(Aluno aluno) {
-        LocalDate dataBase = aluno.getDataInclusao().toLocalDate().withDayOfMonth(5);
+        LocalDate dataBase = aluno.getDataInclusao().toLocalDate().withDayOfMonth(12);
         LocalDate hoje = LocalDate.now();
         ValorMensalidade valor = valorMensalidadeService.buscarValorMensalidadeAtual();
 

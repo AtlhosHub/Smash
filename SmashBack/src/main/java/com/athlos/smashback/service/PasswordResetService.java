@@ -1,5 +1,6 @@
 package com.athlos.smashback.service;
 
+import com.athlos.smashback.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.athlos.smashback.model.PasswordResetToken;
@@ -54,7 +55,7 @@ public class PasswordResetService {
         log.debug(">>> solicitarToken → email bruto:'{}' → trim:'{}'", email, email.trim());
         Usuario user = usuarioRepo.findByEmailIgnoreCase(email.trim())
                 .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NO_CONTENT, "E-mail não cadastrado")
+                        new ResourceNotFoundException("E-mail não cadastrado")
                 );
         tokenRepo.findAllByUsuarioAndUsadoFalse(user)
                 .forEach(t -> t.setUsado(true));

@@ -48,7 +48,10 @@ public class ListaEsperaService {
         if(listaEsperaRepository.existsByNomeAndEmailIgnoreCase(listaEspera.getNome(), listaEspera.getEmail())){
             throw new DataConflictException("Nome e e-mail de interessado já cadastrados");
         }
-        return ResponseEntity.ok(listaEsperaRepository.save(listaEspera));
+
+        listaEsperaRepository.save(listaEspera);
+
+        return ResponseEntity.ok(listaEspera);
     }
 
     public ResponseEntity<Void> deletarInteressado(int id){
@@ -72,7 +75,8 @@ public class ListaEsperaService {
             interessado.setNomeSocial(novoInteressado.getNomeSocial());
             interessado.setTelefone(novoInteressado.getTelefone());
             interessado.setHorarioPref(novoInteressado.getHorarioPref());
-            return ResponseEntity.ok(listaEsperaRepository.save(interessado));
+            listaEsperaRepository.save(interessado);
+            return ResponseEntity.ok(interessado);
         }).orElseThrow(() -> new ResourceNotFoundException("Interessado não encontrado"));
     }
 }
