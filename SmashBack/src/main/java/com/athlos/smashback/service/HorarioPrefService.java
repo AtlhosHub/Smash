@@ -3,7 +3,9 @@ package com.athlos.smashback.service;
 import com.athlos.smashback.dto.ConfiguracoesHorario;
 import com.athlos.smashback.exception.DataConflictException;
 import com.athlos.smashback.exception.ResourceNotFoundException;
+import com.athlos.smashback.model.Aluno;
 import com.athlos.smashback.model.HorarioPref;
+import com.athlos.smashback.model.ListaEspera;
 import com.athlos.smashback.repository.HorarioPrefRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,11 @@ public class HorarioPrefService {
 
     public ResponseEntity<Void> deletarHorario(int id) {
         if(horarioPrefRepository.existsById(id)) {
+            HorarioPref horario = horarioPrefRepository.findById(id).get();
+            for (ListaEspera interessado : horario.getInteressados()) {
+                interessado.setHorarioPref(null);
+            }
+
             horarioPrefRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         }
